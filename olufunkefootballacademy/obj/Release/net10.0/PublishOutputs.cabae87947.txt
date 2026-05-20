@@ -1,0 +1,7 @@
+C:\xampp\htdocs\olufunke-fa\olufunkefootballacademy\pub\olufunkefootballacademy.exe
+C:\xampp\htdocs\olufunke-fa\olufunkefootballacademy\pub\appsettings.Development.json
+C:\xampp\htdocs\olufunke-fa\olufunkefootballacademy\pub\appsettings.json
+C:\xampp\htdocs\olufunke-fa\olufunkefootballacademy\pub\olufunkefootballacademy.dll
+C:\xampp\htdocs\olufunke-fa\olufunkefootballacademy\pub\olufunkefootballacademy.deps.json
+C:\xampp\htdocs\olufunke-fa\olufunkefootballacademy\pub\olufunkefootballacademy.runtimeconfig.json
+C:\xampp\htdocs\olufunke-fa\olufunkefootballacademy\pub\olufunkefootballacademy.pdb
