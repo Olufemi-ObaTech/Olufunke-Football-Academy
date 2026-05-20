@@ -69,7 +69,7 @@
                                     </thead>
                                     <tbody>
                                         @foreach($leaderboard as $i => $attempt)
-                                        <tr class="{{ $myAttempt && $myAttempt->id === $attempt->id ? 'table-warning' : '' }}">
+                                        <tr class="{{ $myBestAttempt && $myBestAttempt->id === $attempt->id ? 'table-warning' : '' }}">
                                             <td class="ps-4 fw-bold">
                                                 @if($i === 0) 🥇
                                                 @elseif($i === 1) 🥈
@@ -85,7 +85,7 @@
                                                     </div>
                                                     <div>
                                                         <div class="fw-semibold">{{ $attempt->display_name }}</div>
-                                                        @if($myAttempt && $myAttempt->id === $attempt->id)
+                                                        @if($myBestAttempt && $myBestAttempt->id === $attempt->id)
                                                             <small class="text-warning fw-bold">← You</small>
                                                         @endif
                                                     </div>
@@ -121,21 +121,26 @@
             <div class="col-lg-4">
 
                 {{-- My Result --}}
-                @if($myAttempt)
+                @if($myBestAttempt)
                 <div class="card border-0 shadow-sm rounded-3 mb-4" style="border-top:4px solid #4CAF50 !important;">
                     <div class="card-body text-center p-4">
                         <div style="font-size:2.5rem;">🎯</div>
-                        <h5 class="fw-bold mt-2 mb-1" style="color:#10316B;">Your Result</h5>
+                        <h5 class="fw-bold mt-2 mb-1" style="color:#10316B;">Your Best Score</h5>
                         <div class="display-4 fw-bold" style="color:#4CAF50;">
-                            {{ $myAttempt->score }}<span class="fs-4 text-muted">/{{ $myAttempt->total_questions }}</span>
+                            {{ $myBestAttempt->score }}<span class="fs-4 text-muted">/{{ $myBestAttempt->total_questions }}</span>
                         </div>
-                        <span class="badge bg-{{ $myAttempt->iq_badge_color }} fs-6 px-3 py-2 mt-2">
-                            {{ $myAttempt->iq_rating }}
+                        <span class="badge bg-{{ $myBestAttempt->iq_badge_color }} fs-6 px-3 py-2 mt-2">
+                            {{ $myBestAttempt->iq_rating }}
                         </span>
-                        <div class="mt-3">
-                            <a href="{{ route('quiz.result', $myAttempt) }}" class="btn btn-outline-primary w-100">
+                        <div class="mt-3 d-flex flex-column gap-2">
+                            <a href="{{ route('quiz.result', $myBestAttempt) }}" class="btn btn-outline-primary w-100">
                                 <i class="bi bi-eye me-1"></i>View Full Results
                             </a>
+                            @if($quizWeek->is_active)
+                            <a href="{{ route('quiz.take', $quizWeek) }}" class="btn btn-warning w-100 fw-bold">
+                                <i class="bi bi-arrow-repeat me-1"></i>Play Again
+                            </a>
+                            @endif
                         </div>
                     </div>
                 </div>

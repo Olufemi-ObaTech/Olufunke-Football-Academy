@@ -51,18 +51,18 @@
 
 {{-- Section Tabs --}}
 <ul class="nav nav-tabs section-tabs mb-0" id="leagueTabs" role="tablist" style="border-color:#e8edf2;">
-  <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-results">
+  <li class="nav-item"><button class="nav-link {{ request('tab','results')==='results' ? 'active' : '' }}" data-bs-toggle="tab" data-bs-target="#tab-results">
     <i class="bi bi-calendar2-check me-1"></i>Match Results</button></li>
-  <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-standings">
+  <li class="nav-item"><button class="nav-link {{ request('tab')==='standings' ? 'active' : '' }}" data-bs-toggle="tab" data-bs-target="#tab-standings">
     <i class="bi bi-bar-chart-line-fill me-1"></i>Standings</button></li>
-  <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-fixtures">
+  <li class="nav-item"><button class="nav-link {{ request('tab')==='fixtures' ? 'active' : '' }}" data-bs-toggle="tab" data-bs-target="#tab-fixtures">
     <i class="bi bi-calendar-event-fill me-1"></i>Next Fixture</button></li>
 </ul>
 
 <div class="tab-content" style="background:#fff;border:1px solid #e8edf2;border-top:none;border-radius:0 0 16px 16px;padding:24px;">
 
 {{-- ══════════════ TAB 1: MATCH RESULTS ══════════════ --}}
-<div class="tab-pane fade show active" id="tab-results">
+<div class="tab-pane fade {{ request('tab','results')==='results' ? 'show active' : '' }}" id="tab-results">
 
   {{-- Add Result Form --}}
   <div class="lpnl mb-4">
@@ -156,9 +156,8 @@
             <td class="d-none d-lg-table-cell text-muted" style="font-size:.75rem;">{{ Str::limit($r->venue??'—',35) }}</td>
             <td class="text-center">
               <div class="d-flex gap-1 justify-content-center">
-                <button class="abtn" style="background:#dbeafe;color:#1d4ed8;" title="Edit"
-                        onclick="openEditResult({{ $r->id }}, {{ json_encode($r) }})">
-                  <i class="bi bi-pencil-fill"></i></button>
+                <a href="{{ route('admin.league.results.edit', $r) }}" class="abtn" style="background:#dbeafe;color:#1d4ed8;" title="Edit">
+                  <i class="bi bi-pencil-fill"></i></a>
                 <form action="{{ route('admin.league.results.destroy', $r) }}" method="POST" class="d-inline"
                       onsubmit="return confirm('Delete this result?')">
                   @csrf @method('DELETE')
@@ -178,12 +177,12 @@
 </div>{{-- /tab-results --}}
 
 {{-- ══════════════ TAB 2: STANDINGS ══════════════ --}}
-<div class="tab-pane fade" id="tab-standings">
+<div class="tab-pane fade {{ request('tab')==='standings' ? 'show active' : '' }}" id="tab-standings">
 
   {{-- Add Standing --}}
   <div class="lpnl mb-4">
     <div class="lpnl-h">
-      <div class="lph"><div class="lphi" style="background:#dcfce7;"><i class="bi bi-plus-circle-fill" style="color:#16a34a;"></i></div>Add / Update Standing Entry</div>
+      <div class="lph"><div class="lphi" style="background:#dcfce7;"><i class="bi bi-plus-circle-fill" style="color:#16a34a;"></i></div>Add Standing Entry</div>
       <button class="btn btn-sm" style="background:#f0f4f8;border-radius:8px;" type="button" data-bs-toggle="collapse" data-bs-target="#addStandingForm">
         <i class="bi bi-chevron-down"></i>
       </button>
@@ -194,26 +193,46 @@
           @csrf
           <div class="row g-3">
             <div class="col-md-1">
-              <label class="form-label fw-semibold" style="font-size:.78rem;">Rank <span class="text-danger">*</span></label>
+              <label class="form-label fw-semibold" style="font-size:.78rem;">Pos <span class="text-danger">*</span></label>
               <input type="number" name="rank" class="form-control form-control-sm" min="1" required value="{{ old('rank') }}">
             </div>
             <div class="col-md-4">
               <label class="form-label fw-semibold" style="font-size:.78rem;">Club Name <span class="text-danger">*</span></label>
               <input type="text" name="club_name" class="form-control form-control-sm" placeholder="e.g. Olufunke FA" required value="{{ old('club_name') }}">
             </div>
-            <div class="col-md-2">
-              <label class="form-label fw-semibold" style="font-size:.78rem;">Played <span class="text-danger">*</span></label>
+            <div class="col-md-1">
+              <label class="form-label fw-semibold" style="font-size:.78rem;">PL <span class="text-danger">*</span></label>
               <input type="number" name="played" class="form-control form-control-sm" min="0" required value="{{ old('played', 0) }}">
             </div>
-            <div class="col-md-2">
-              <label class="form-label fw-semibold" style="font-size:.78rem;">Points <span class="text-danger">*</span></label>
+            <div class="col-md-1">
+              <label class="form-label fw-semibold" style="font-size:.78rem;">W <span class="text-danger">*</span></label>
+              <input type="number" name="won" class="form-control form-control-sm" min="0" required value="{{ old('won', 0) }}">
+            </div>
+            <div class="col-md-1">
+              <label class="form-label fw-semibold" style="font-size:.78rem;">D <span class="text-danger">*</span></label>
+              <input type="number" name="drawn" class="form-control form-control-sm" min="0" required value="{{ old('drawn', 0) }}">
+            </div>
+            <div class="col-md-1">
+              <label class="form-label fw-semibold" style="font-size:.78rem;">L <span class="text-danger">*</span></label>
+              <input type="number" name="lost" class="form-control form-control-sm" min="0" required value="{{ old('lost', 0) }}">
+            </div>
+            <div class="col-md-1">
+              <label class="form-label fw-semibold" style="font-size:.78rem;">GF <span class="text-danger">*</span></label>
+              <input type="number" name="goals_for" class="form-control form-control-sm" min="0" required value="{{ old('goals_for', 0) }}">
+            </div>
+            <div class="col-md-1">
+              <label class="form-label fw-semibold" style="font-size:.78rem;">GA <span class="text-danger">*</span></label>
+              <input type="number" name="goals_against" class="form-control form-control-sm" min="0" required value="{{ old('goals_against', 0) }}">
+            </div>
+            <div class="col-md-1">
+              <label class="form-label fw-semibold" style="font-size:.78rem;">Pts <span class="text-danger">*</span></label>
               <input type="number" name="points" class="form-control form-control-sm" min="0" required value="{{ old('points', 0) }}">
             </div>
             <div class="col-md-3 d-flex align-items-end">
               <div class="form-check mb-2">
                 <input class="form-check-input" type="checkbox" name="is_featured_club" value="1" id="isFeatured" {{ old('is_featured_club') ? 'checked' : '' }}>
                 <label class="form-check-label fw-semibold" for="isFeatured" style="font-size:.78rem;">
-                  Highlight as OFA (featured club)
+                  OFA (featured)
                 </label>
               </div>
             </div>
@@ -237,28 +256,43 @@
     <div class="table-responsive">
       <table class="table mtbl mb-0">
         <thead><tr>
-          <th style="width:60px;">#</th><th>Club</th>
-          <th class="text-center">Played</th><th class="text-center">Points</th>
-          <th class="text-center">Featured</th><th class="text-center">Actions</th>
+          <th style="width:44px;">Pos</th>
+          <th>Club</th>
+          <th class="text-center">PL</th>
+          <th class="text-center">W</th>
+          <th class="text-center">D</th>
+          <th class="text-center">L</th>
+          <th class="text-center d-none d-md-table-cell">GF</th>
+          <th class="text-center d-none d-md-table-cell">GA</th>
+          <th class="text-center d-none d-md-table-cell">GD</th>
+          <th class="text-center">Pts</th>
+          <th class="text-center">Actions</th>
         </tr></thead>
         <tbody>
           @forelse($standings as $s)
           <tr @if($s->is_featured_club) style="background:#f0fdf4;" @endif>
-            <td class="fw-bold" style="color:#10316B;">{{ $s->rank }}</td>
+            <td class="fw-bold text-center" style="color:#10316B;">{{ $s->rank }}</td>
             <td class="fw-semibold" style="color:#0d1117;">
               @if($s->is_featured_club)<i class="bi bi-shield-fill-check text-success me-1"></i>@endif
               {{ $s->club_name }}
             </td>
             <td class="text-center">{{ $s->played }}</td>
-            <td class="text-center fw-bold">{{ $s->points }}</td>
-            <td class="text-center">
-              @if($s->is_featured_club)<span class="pl pl-g">OFA</span>@else<span class="text-muted">—</span>@endif
+            <td class="text-center text-success fw-semibold">{{ $s->won }}</td>
+            <td class="text-center">{{ $s->drawn }}</td>
+            <td class="text-center text-danger fw-semibold">{{ $s->lost }}</td>
+            <td class="text-center d-none d-md-table-cell">{{ $s->goals_for }}</td>
+            <td class="text-center d-none d-md-table-cell">{{ $s->goals_against }}</td>
+            <td class="text-center d-none d-md-table-cell">
+              @php $gd = $s->goals_for - $s->goals_against; @endphp
+              <span class="{{ $gd > 0 ? 'text-success' : ($gd < 0 ? 'text-danger' : '') }}">
+                {{ $gd > 0 ? '+' : '' }}{{ $gd }}
+              </span>
             </td>
+            <td class="text-center fw-bold" style="color:#10316B;">{{ $s->points }}</td>
             <td class="text-center">
               <div class="d-flex gap-1 justify-content-center">
-                <button class="abtn" style="background:#dbeafe;color:#1d4ed8;" title="Edit"
-                        onclick="openEditStanding({{ $s->id }}, {{ json_encode($s) }})">
-                  <i class="bi bi-pencil-fill"></i></button>
+                <a href="{{ route('admin.league.standings.edit', $s) }}" class="abtn" style="background:#dbeafe;color:#1d4ed8;" title="Edit">
+                  <i class="bi bi-pencil-fill"></i></a>
                 <form action="{{ route('admin.league.standings.destroy', $s) }}" method="POST" class="d-inline"
                       onsubmit="return confirm('Delete {{ addslashes($s->club_name) }}?')">
                   @csrf @method('DELETE')
@@ -269,7 +303,7 @@
             </td>
           </tr>
           @empty
-          <tr><td colspan="6" class="text-center text-muted py-4">No standings yet.</td></tr>
+          <tr><td colspan="11" class="text-center text-muted py-4">No standings yet.</td></tr>
           @endforelse
         </tbody>
       </table>
@@ -278,7 +312,7 @@
 </div>{{-- /tab-standings --}}
 
 {{-- ══════════════ TAB 3: NEXT FIXTURE ══════════════ --}}
-<div class="tab-pane fade" id="tab-fixtures">
+<div class="tab-pane fade {{ request('tab')==='fixtures' ? 'show active' : '' }}" id="tab-fixtures">
 
   {{-- Add Fixture --}}
   <div class="lpnl mb-4">
@@ -368,9 +402,8 @@
             </td>
             <td class="text-center">
               <div class="d-flex gap-1 justify-content-center">
-                <button class="abtn" style="background:#dbeafe;color:#1d4ed8;" title="Edit"
-                        onclick="openEditFixture({{ $f->id }}, {{ json_encode($f) }})">
-                  <i class="bi bi-pencil-fill"></i></button>
+                <a href="{{ route('admin.league.fixtures.edit', $f) }}" class="abtn" style="background:#dbeafe;color:#1d4ed8;" title="Edit">
+                  <i class="bi bi-pencil-fill"></i></a>
                 <form action="{{ route('admin.league.fixtures.destroy', $f) }}" method="POST" class="d-inline"
                       onsubmit="return confirm('Delete this fixture?')">
                   @csrf @method('DELETE')
@@ -393,175 +426,4 @@
 </div>{{-- /flex-grow-1 --}}
 </div>{{-- /dash-wrap --}}
 
-{{-- ══════════════ EDIT MODALS ══════════════ --}}
-
-{{-- Edit Result Modal --}}
-<div class="modal fade" id="editResultModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content border-0 shadow-lg" style="border-radius:16px;overflow:hidden;">
-      <div class="modal-header border-0 text-white" style="background:linear-gradient(135deg,#10316B,#1e4db7);">
-        <h5 class="modal-title fw-bold"><i class="bi bi-pencil-fill me-2"></i>Edit Match Result</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-      </div>
-      <form id="editResultForm" method="POST">
-        @csrf @method('PUT')
-        <div class="modal-body p-4">
-          <div class="row g-3">
-            <div class="col-md-3"><label class="form-label fw-semibold" style="font-size:.78rem;">Match Date</label>
-              <input type="date" name="match_date" id="er_date" class="form-control form-control-sm" required></div>
-            <div class="col-md-2"><label class="form-label fw-semibold" style="font-size:.78rem;">Week Label</label>
-              <input type="text" name="week_label" id="er_week" class="form-control form-control-sm" placeholder="WK4"></div>
-            <div class="col-md-3"><label class="form-label fw-semibold" style="font-size:.78rem;">Opponent</label>
-              <input type="text" name="opponent" id="er_opp" class="form-control form-control-sm" required></div>
-            <div class="col-md-4"><label class="form-label fw-semibold" style="font-size:.78rem;">Competition</label>
-              <input type="text" name="competition" id="er_comp" class="form-control form-control-sm" required></div>
-            <div class="col-md-4"><label class="form-label fw-semibold" style="font-size:.78rem;">Result Badge</label>
-              <input type="text" name="result_badge" id="er_badge" class="form-control form-control-sm" required></div>
-            <div class="col-md-2"><label class="form-label fw-semibold" style="font-size:.78rem;">Badge Colour</label>
-              <select name="status_color" id="er_color" class="form-select form-select-sm" required>
-                <option value="success">✅ Win</option><option value="danger">❌ Loss</option>
-                <option value="warning">🟡 Draw</option><option value="secondary">⏸ Postponed</option>
-                <option value="primary">🔵 Other</option>
-              </select></div>
-            <div class="col-md-2"><label class="form-label fw-semibold" style="font-size:.78rem;">Kick-off</label>
-              <input type="time" name="kick_off_time" id="er_time" class="form-control form-control-sm"></div>
-            <div class="col-md-4"><label class="form-label fw-semibold" style="font-size:.78rem;">Venue</label>
-              <input type="text" name="venue" id="er_venue" class="form-control form-control-sm"></div>
-            <div class="col-12"><label class="form-label fw-semibold" style="font-size:.78rem;">Notes</label>
-              <input type="text" name="notes" id="er_notes" class="form-control form-control-sm"></div>
-          </div>
-        </div>
-        <div class="modal-footer border-0 pt-0">
-          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn fw-bold px-4" style="background:linear-gradient(135deg,#10316B,#1e4db7);color:#fff;border-radius:10px;">
-            <i class="bi bi-save-fill me-1"></i>Save Changes</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
-{{-- Edit Standing Modal --}}
-<div class="modal fade" id="editStandingModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content border-0 shadow-lg" style="border-radius:16px;overflow:hidden;">
-      <div class="modal-header border-0 text-white" style="background:linear-gradient(135deg,#059669,#10b981);">
-        <h5 class="modal-title fw-bold"><i class="bi bi-pencil-fill me-2"></i>Edit Standing</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-      </div>
-      <form id="editStandingForm" method="POST">
-        @csrf @method('PUT')
-        <div class="modal-body p-4">
-          <div class="row g-3">
-            <div class="col-md-2"><label class="form-label fw-semibold" style="font-size:.78rem;">Rank</label>
-              <input type="number" name="rank" id="es_rank" class="form-control form-control-sm" min="1" required></div>
-            <div class="col-md-6"><label class="form-label fw-semibold" style="font-size:.78rem;">Club Name</label>
-              <input type="text" name="club_name" id="es_club" class="form-control form-control-sm" required></div>
-            <div class="col-md-2"><label class="form-label fw-semibold" style="font-size:.78rem;">Played</label>
-              <input type="number" name="played" id="es_played" class="form-control form-control-sm" min="0" required></div>
-            <div class="col-md-2"><label class="form-label fw-semibold" style="font-size:.78rem;">Points</label>
-              <input type="number" name="points" id="es_points" class="form-control form-control-sm" min="0" required></div>
-            <div class="col-12">
-              <div class="form-check">
-                <input class="form-check-input" type="checkbox" name="is_featured_club" value="1" id="es_featured">
-                <label class="form-check-label fw-semibold" for="es_featured" style="font-size:.82rem;">Highlight as OFA (featured club)</label>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="modal-footer border-0 pt-0">
-          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn fw-bold px-4" style="background:linear-gradient(135deg,#059669,#10b981);color:#fff;border-radius:10px;">
-            <i class="bi bi-save-fill me-1"></i>Save Changes</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
-{{-- Edit Fixture Modal --}}
-<div class="modal fade" id="editFixtureModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content border-0 shadow-lg" style="border-radius:16px;overflow:hidden;">
-      <div class="modal-header border-0 text-white" style="background:linear-gradient(135deg,#d97706,#f59e0b);">
-        <h5 class="modal-title fw-bold"><i class="bi bi-pencil-fill me-2"></i>Edit Fixture</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-      </div>
-      <form id="editFixtureForm" method="POST">
-        @csrf @method('PUT')
-        <div class="modal-body p-4">
-          <div class="row g-3">
-            <div class="col-md-2"><label class="form-label fw-semibold" style="font-size:.78rem;">Week Label</label>
-              <input type="text" name="week_label" id="ef_week" class="form-control form-control-sm" required></div>
-            <div class="col-md-4"><label class="form-label fw-semibold" style="font-size:.78rem;">Home Team</label>
-              <input type="text" name="home_team" id="ef_home" class="form-control form-control-sm" required></div>
-            <div class="col-md-4"><label class="form-label fw-semibold" style="font-size:.78rem;">Away Team</label>
-              <input type="text" name="away_team" id="ef_away" class="form-control form-control-sm" required></div>
-            <div class="col-md-2"></div>
-            <div class="col-12"><label class="form-label fw-semibold" style="font-size:.78rem;">Competition</label>
-              <input type="text" name="competition" id="ef_comp" class="form-control form-control-sm" required></div>
-            <div class="col-md-4"><label class="form-label fw-semibold" style="font-size:.78rem;">Fixture Date</label>
-              <input type="date" name="fixture_date" id="ef_date" class="form-control form-control-sm" required></div>
-            <div class="col-md-2"><label class="form-label fw-semibold" style="font-size:.78rem;">Kick-off</label>
-              <input type="time" name="kick_off_time" id="ef_time" class="form-control form-control-sm" required></div>
-            <div class="col-md-6"><label class="form-label fw-semibold" style="font-size:.78rem;">Venue</label>
-              <input type="text" name="venue" id="ef_venue" class="form-control form-control-sm" required></div>
-            <div class="col-12">
-              <div class="form-check">
-                <input class="form-check-input" type="checkbox" name="is_active" value="1" id="ef_active">
-                <label class="form-check-label fw-semibold" for="ef_active" style="font-size:.82rem;">Set as Active (shown on home page)</label>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="modal-footer border-0 pt-0">
-          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn fw-bold px-4" style="background:linear-gradient(135deg,#d97706,#f59e0b);color:#fff;border-radius:10px;">
-            <i class="bi bi-save-fill me-1"></i>Save Changes</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
 @endsection
-@push('scripts')
-<script>
-function openEditResult(id, r) {
-  document.getElementById('editResultForm').action = '/admin/league/results/' + id;
-  document.getElementById('er_date').value  = r.match_date ? r.match_date.substring(0,10) : '';
-  document.getElementById('er_week').value  = r.week_label  || '';
-  document.getElementById('er_opp').value   = r.opponent    || '';
-  document.getElementById('er_comp').value  = r.competition || '';
-  document.getElementById('er_badge').value = r.result_badge|| '';
-  document.getElementById('er_color').value = r.status_color|| 'success';
-  document.getElementById('er_time').value  = r.kick_off_time ? r.kick_off_time.substring(0,5) : '';
-  document.getElementById('er_venue').value = r.venue || '';
-  document.getElementById('er_notes').value = r.notes || '';
-  new bootstrap.Modal(document.getElementById('editResultModal')).show();
-}
-
-function openEditStanding(id, s) {
-  document.getElementById('editStandingForm').action = '/admin/league/standings/' + id;
-  document.getElementById('es_rank').value   = s.rank;
-  document.getElementById('es_club').value   = s.club_name;
-  document.getElementById('es_played').value = s.played;
-  document.getElementById('es_points').value = s.points;
-  document.getElementById('es_featured').checked = !!s.is_featured_club;
-  new bootstrap.Modal(document.getElementById('editStandingModal')).show();
-}
-
-function openEditFixture(id, f) {
-  document.getElementById('editFixtureForm').action = '/admin/league/fixtures/' + id;
-  document.getElementById('ef_week').value  = f.week_label  || '';
-  document.getElementById('ef_home').value  = f.home_team   || '';
-  document.getElementById('ef_away').value  = f.away_team   || '';
-  document.getElementById('ef_comp').value  = f.competition || '';
-  document.getElementById('ef_date').value  = f.fixture_date ? f.fixture_date.substring(0,10) : '';
-  document.getElementById('ef_time').value  = f.kick_off_time ? f.kick_off_time.substring(0,5) : '';
-  document.getElementById('ef_venue').value = f.venue || '';
-  document.getElementById('ef_active').checked = !!f.is_active;
-  new bootstrap.Modal(document.getElementById('editFixtureModal')).show();
-}
-</script>
-@endpush

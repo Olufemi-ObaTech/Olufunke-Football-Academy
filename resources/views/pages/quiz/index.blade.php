@@ -60,7 +60,7 @@
                                     {{ $activeQuiz->questions()->count() }} questions in pool
                                 </span>
                                 <span><i class="bi bi-shuffle me-1"></i>
-                                    10 random per session
+                                    10 random per session — different every time
                                 </span>
                                 <span><i class="bi bi-clock me-1"></i>
                                     {{ round($activeQuiz->time_limit / 60) }} min time limit
@@ -70,18 +70,28 @@
                                 </span>
                             </div>
 
-                            @if($myAttempt)
+                            @if($myBestAttempt)
                                 <div class="alert alert-success d-flex align-items-center gap-3 mb-3">
                                     <i class="bi bi-check-circle-fill fs-3"></i>
                                     <div>
-                                        <strong>You scored {{ $myAttempt->score }}/{{ $myAttempt->total_questions }}!</strong>
-                                        <span class="badge bg-{{ $myAttempt->iq_badge_color }} ms-2">{{ $myAttempt->iq_rating }}</span>
+                                        <strong>Your best score: {{ $myBestAttempt->score }}/{{ $myBestAttempt->total_questions }}</strong>
+                                        <span class="badge bg-{{ $myBestAttempt->iq_badge_color }} ms-2">{{ $myBestAttempt->iq_rating }}</span>
                                         <div class="small mt-1">
-                                            <a href="{{ route('quiz.result', $myAttempt) }}" class="text-success fw-semibold">
-                                                View your results & leaderboard →
+                                            <a href="{{ route('quiz.result', $myBestAttempt) }}" class="text-success fw-semibold">
+                                                View your best result →
                                             </a>
                                         </div>
                                     </div>
+                                </div>
+                                <div class="d-flex gap-3 flex-wrap">
+                                    <a href="{{ route('quiz.take', $activeQuiz) }}"
+                                       class="btn btn-warning btn-lg fw-bold px-5 shadow-sm">
+                                        <i class="bi bi-arrow-repeat me-2"></i>Play Again
+                                    </a>
+                                    <a href="{{ route('quiz.show', $activeQuiz) }}"
+                                       class="btn btn-outline-primary btn-lg">
+                                        <i class="bi bi-bar-chart-fill me-1"></i>Leaderboard
+                                    </a>
                                 </div>
                             @else
                                 <div class="d-flex gap-3 flex-wrap">

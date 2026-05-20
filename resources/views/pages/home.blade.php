@@ -73,7 +73,7 @@
                 </button>
             </li>
         </ul>
-
+ 
         <div class="tab-content" id="newsTabContent">
 
             {{-- Latest News Tab --}}
@@ -239,18 +239,23 @@
                 <table class="table mb-0 align-middle text-center">
                     <thead style="background:#10316B; color:#fff;">
                         <tr>
+                            <th>Week</th>
                             <th>Date</th>
                             <th>Opponent</th>
-                            <th>Competition</th>
                             <th>Result</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($matchResults as $match)
                             <tr>
-                                <td>{{ \Carbon\Carbon::parse($match->match_date)->format('d M Y') }}</td>
+                                <td>
+                                    @if($match->week_label)
+                                        <span class="badge bg-secondary">{{ $match->week_label }}</span>
+                                    @else —
+                                    @endif
+                                </td>
+                                <td>{{ $match->match_date->format('d M Y') }}</td>
                                 <td class="fw-semibold">{{ $match->opponent }}</td>
-                                <td>{{ $match->competition }}</td>
                                 <td>
                                     <span class="badge bg-{{ $match->status_color }} fs-6 px-3 py-2">
                                         {{ $match->result_badge }}
@@ -270,42 +275,77 @@
     <section class="py-3">
         <div class="container">
             <div class="row justify-content-center">
-                <div class="col-12 col-md-6">
+                <div class="col-12 col-lg-9">
                     <div class="p-3 bg-white rounded-3 shadow-sm">
                         <h6 class="fw-bold mb-3">
-                            <i class="bi bi-bar-chart-line-fill text-primary"></i> LSFA State League 2026/27 — Atlantic Conference
+                            <i class="bi bi-bar-chart-line-fill text-primary"></i>
+                            LSFA State League 2026/27 — Atlantic Conference
                         </h6>
-                        <table class="table table-sm table-hover table-bordered align-middle mb-0">
+                        @if($standings->isEmpty())
+                        <p class="text-muted text-center py-3 mb-0">
+                            <i class="bi bi-bar-chart-line-fill d-block fs-2 mb-2 opacity-25"></i>
+                            Standings not yet available.
+                        </p>
+                        @else
+                        <div class="table-responsive">
+                        <table class="table table-sm table-hover table-bordered align-middle mb-0" style="font-size:.85rem;">
                             <thead style="background:#10316B; color:#fff;">
                                 <tr>
-                                    <th>#</th>
-                                    <th>Club</th>
-                                    <th>P</th>
-                                    <th>Pts</th>
+                                    <th class="text-center" style="width:36px;">POS</th>
+                                    <th>CLUB</th>
+                                    <th class="text-center" style="width:36px;">PL</th>
+                                    <th class="text-center d-none d-sm-table-cell" style="width:36px;">W</th>
+                                    <th class="text-center d-none d-sm-table-cell" style="width:36px;">D</th>
+                                    <th class="text-center d-none d-sm-table-cell" style="width:36px;">L</th>
+                                    <th class="text-center d-none d-md-table-cell" style="width:36px;">GF</th>
+                                    <th class="text-center d-none d-md-table-cell" style="width:36px;">GA</th>
+                                    <th class="text-center d-none d-md-table-cell" style="width:40px;">GD</th>
+                                    <th class="text-center" style="width:40px;">PTS</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach($standings as $team)
-                                    <tr @if($team->is_featured_club) style="background:#e8f5e9;" @endif>
-                                        <td>{{ $team->rank }}</td>
-                                        <td>
-                                            @if($team->is_featured_club)
-                                                <strong class="text-success">
-                                                    <i class="bi bi-shield-fill-check"></i> {{ $team->club_name }}
-                                                </strong>
-                                            @else
-                                                {{ $team->club_name }}
-                                            @endif
-                                        </td>
-                                        <td>{{ $team->played }}</td>
-                                        <td><strong>{{ $team->points }}</strong></td>
-                                    </tr>
+                                @php $gd = $team->goals_for - $team->goals_against; @endphp
+                                <tr @if($team->is_featured_club) style="background:#e8f5e9;font-weight:600;" @endif>
+                                    <td class="text-center fw-bold" style="color:#10316B;">{{ $team->rank }}</td>
+                                    <td>
+                                        @if($team->is_featured_club)
+                                            <strong class="text-success">
+                                                <i class="bi bi-shield-fill-check"></i> {{ $team->club_name }}
+                                            </strong>
+                                        @else
+                                            {{ $team->club_name }}
+                                        @endif
+                                    </td>
+                                    <td class="text-center">{{ $team->played }}</td>
+                                    <td class="text-center d-none d-sm-table-cell text-success fw-semibold">{{ $team->won }}</td>
+                                    <td class="text-center d-none d-sm-table-cell">{{ $team->drawn }}</td>
+                                    <td class="text-center d-none d-sm-table-cell text-danger fw-semibold">{{ $team->lost }}</td>
+                                    <td class="text-center d-none d-md-table-cell">{{ $team->goals_for }}</td>
+                                    <td class="text-center d-none d-md-table-cell">{{ $team->goals_against }}</td>
+                                    <td class="text-center d-none d-md-table-cell">
+                                        <span class="{{ $gd > 0 ? 'text-success' : ($gd < 0 ? 'text-danger' : 'text-muted') }}">
+                                            {{ $gd > 0 ? '+' : '' }}{{ $gd }}
+                                        </span>
+                                    </td>
+                                    <td class="text-center fw-bold" style="color:#10316B;">{{ $team->points }}</td>
+                                </tr>
                                 @endforeach
                             </tbody>
                         </table>
-                        <div class="small text-muted mt-2">
-                            <i class="bi bi-info-circle me-1"></i>Standings after WK4. WK3 (OFA vs Buckner FC) postponed. WK5 upcoming.
                         </div>
+                        <div class="small text-muted mt-2">
+                            <i class="bi bi-info-circle me-1"></i>
+                            @if($matchResults->isNotEmpty())
+                                Updated after {{ $matchResults->first()->week_label ?? $matchResults->first()->match_date->format('d M Y') }}.
+                            @else
+                                Current league standings.
+                            @endif
+                            @if($nextFixture)
+                                Next: {{ $nextFixture->week_label }} — {{ $nextFixture->fixture_date->format('d M Y') }}.
+                            @endif
+                        </div>
+                        @endif
                     </div>
                 </div>
             </div>

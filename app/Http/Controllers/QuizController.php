@@ -21,15 +21,17 @@ class QuizController extends Controller
             ->orderByDesc('week_start')
             ->get();
 
-        // Check if current user already attempted the active quiz
-        $myAttempt = null;
+        // Get the user's best attempt for the active quiz (if any)
+        $myBestAttempt = null;
         if ($activeQuiz && auth()->check()) {
-            $myAttempt = QuizAttempt::where('quiz_week_id', $activeQuiz->id)
+            $myBestAttempt = QuizAttempt::where('quiz_week_id', $activeQuiz->id)
                 ->where('user_id', auth()->id())
+                ->orderByDesc('score')
+                ->orderBy('time_taken')
                 ->first();
         }
 
-        return view('pages.quiz.index', compact('activeQuiz', 'pastQuizzes', 'myAttempt'));
+        return view('pages.quiz.index', compact('activeQuiz', 'pastQuizzes', 'myBestAttempt'));
     }
 
     /** Show a specific quiz week's leaderboard / info */
@@ -42,30 +44,21 @@ class QuizController extends Controller
             ->limit(20)
             ->get();
 
-        $myAttempt = null;
+        $myBestAttempt = null;
         if (auth()->check()) {
-            $myAttempt = QuizAttempt::where('quiz_week_id', $quizWeek->id)
+            $myBestAttempt = QuizAttempt::where('quiz_week_id', $quizWeek->id)
                 ->where('user_id', auth()->id())
+                ->orderByDesc('score')
+                ->orderBy('time_taken')
                 ->first();
         }
 
-        return view('pages.quiz.show', compact('quizWeek', 'leaderboard', 'myAttempt'));
+        return view('pages.quiz.show', compact('quizWeek', 'leaderboard', 'myBestAttempt'));
     }
 
     /** Show the quiz taking page — 10 random questions per session */
     public function take(QuizWeek $quizWeek)
     {
-        // If already attempted (logged-in user), redirect to results
-        if (auth()->check()) {
-            $existing = QuizAttempt::where('quiz_week_id', $quizWeek->id)
-                ->where('user_id', auth()->id())
-                ->first();
-            if ($existing) {
-                return redirect()->route('quiz.result', $existing->id)
-                    ->with('info', 'You have already completed this quiz. Here are your results.');
-            }
-        }
-
         $allQuestions = $quizWeek->questions()->with('options')->get();
 
         if ($allQuestions->isEmpty()) {
@@ -73,7 +66,7 @@ class QuizController extends Controller
                 ->with('error', 'This quiz has no questions yet. Check back soon!');
         }
 
-        // Pick 10 random questions (or all if fewer than 10)
+        // Always shuffle and pick 10 random questions — different every attempt
         $questions = $allQuestions->shuffle()->take(10);
 
         // Store the selected question IDs in session so submit can score only those
@@ -101,7 +94,6 @@ class QuizController extends Controller
                 ->get();
             session()->forget($sessionKey);
         } else {
-            // Fallback: score all questions
             $questions = $quizWeek->questions()->with('options')->get();
         }
 
@@ -123,6 +115,44 @@ class QuizController extends Controller
                 'correct'    => $correctOption?->id,
                 'is_correct' => $isCorrect,
             ];
+        }
+
+        // For logged-in users: keep only the highest score attempt
+        if (auth()->check()) {
+            $bestExisting = QuizAttempt::where('quiz_week_id', $quizWeek->id)
+                ->where('user_id', auth()->id())
+                ->orderByDesc('score')
+                ->orderBy('time_taken')
+                ->first();
+
+            if ($bestExisting) {
+                $newIsBetter = $score > $bestExisting->score
+                    || ($score === $bestExisting->score
+                        && ($request->time_taken ?? PHP_INT_MAX) < ($bestExisting->time_taken ?? PHP_INT_MAX));
+
+                if ($newIsBetter) {
+                    // Delete all previous attempts for this user+quiz, save the new best
+                    QuizAttempt::where('quiz_week_id', $quizWeek->id)
+                        ->where('user_id', auth()->id())
+                        ->delete();
+                } else {
+                    // New attempt is not better — still save it temporarily to show result,
+                    // but delete it right after creating so the leaderboard stays clean
+                    $attempt = QuizAttempt::create([
+                        'quiz_week_id'    => $quizWeek->id,
+                        'user_id'         => auth()->id(),
+                        'guest_name'      => null,
+                        'score'           => $score,
+                        'total_questions' => $questions->count(),
+                        'time_taken'      => $request->time_taken,
+                        'answers'         => $answersLog,
+                        'ip_address'      => $request->ip(),
+                    ]);
+                    // Redirect to result page, then the old best remains on leaderboard
+                    return redirect()->route('quiz.result', $attempt->id)
+                        ->with('info', 'Good try! Your previous best score of '.$bestExisting->score.'/'.$bestExisting->total_questions.' is still your highest.');
+                }
+            }
         }
 
         $attempt = QuizAttempt::create([

@@ -8,7 +8,7 @@
 
 /* ─── Sidebar ───────────────────────────────────────────────────────────── */
 .dsb{width:256px;min-width:256px;background:linear-gradient(180deg,#0f1f3d 0%,#0a1628 100%);
-  display:flex;flex-direction:column;position:sticky;top:72px;
+  display:flex;flex-direction:column;position:sticky;top:0;
   height:calc(100vh - 72px);overflow-y:auto;overflow-x:hidden;
   box-shadow:4px 0 32px rgba(0,0,0,.5);transition:width .25s ease;scrollbar-width:thin;
   scrollbar-color:rgba(255,255,255,.1) transparent;}
@@ -34,7 +34,7 @@
 .dmain{flex:1;background:#f0f4f8;overflow-x:hidden;min-width:0;}
 .dtop{background:#fff;padding:13px 24px;display:flex;align-items:center;
   justify-content:space-between;border-bottom:1px solid #e5eaf0;
-  position:sticky;top:72px;z-index:99;box-shadow:0 1px 6px rgba(0,0,0,.05);}
+  position:sticky;top:0;z-index:99;box-shadow:0 1px 6px rgba(0,0,0,.05);}
 .dtop .pt{font-size:1.05rem;font-weight:800;color:#0d1117;}
 .dtop .pm{font-size:.72rem;color:#64748b;margin-top:1px;}
 .dbody{padding:22px 24px;}
@@ -240,43 +240,43 @@
   {{-- ── Quick Nav ────────────────────────────────────────────────────────── --}}
   <p style="font-size:.68rem;font-weight:800;letter-spacing:.1em;color:#94a3b8;text-transform:uppercase;margin-bottom:10px;">Content Management</p>
   <div class="row g-3 mb-4">
-    <div class="col-6 col-md-4 col-lg-2">
+    <div class="col-6 col-sm-4 col-md-3 col-xl-auto" style="min-width:140px;">
       <a href="{{ route('admin.league.index') }}" class="qnt">
         <div class="qi" style="background:#fef3c7;"><i class="bi bi-trophy-fill" style="color:#d97706;"></i></div>
         <div><div class="qt">League</div><div class="qs">Results &amp; fixtures</div></div>
       </a>
     </div>
-    <div class="col-6 col-md-4 col-lg-2">
+    <div class="col-6 col-sm-4 col-md-3 col-xl-auto" style="min-width:140px;">
       <a href="{{ route('admin.spotlight.index') }}" class="qnt">
         <div class="qi" style="background:#fef3c7;"><i class="bi bi-person-badge-fill" style="color:#d97706;"></i></div>
         <div><div class="qt">Spotlight</div><div class="qs">Player profiles</div></div>
       </a>
     </div>
-    <div class="col-6 col-md-4 col-lg-2">
+    <div class="col-6 col-sm-4 col-md-3 col-xl-auto" style="min-width:140px;">
       <a href="{{ route('admin.news.index') }}" class="qnt">
         <div class="qi" style="background:#fee2e2;"><i class="bi bi-newspaper" style="color:#dc2626;"></i></div>
         <div><div class="qt">News</div><div class="qs">Posts &amp; reports</div></div>
       </a>
     </div>
-    <div class="col-6 col-md-4 col-lg-2">
+    <div class="col-6 col-sm-4 col-md-3 col-xl-auto" style="min-width:140px;">
       <a href="{{ route('admin.about.index') }}" class="qnt">
         <div class="qi" style="background:#f3e8ff;"><i class="bi bi-info-circle-fill" style="color:#9333ea;"></i></div>
         <div><div class="qt">About</div><div class="qs">Mgmt team</div></div>
       </a>
     </div>
-    <div class="col-6 col-md-4 col-lg-2">
+    <div class="col-6 col-sm-4 col-md-3 col-xl-auto" style="min-width:140px;">
       <a href="{{ route('admin.schedules.index') }}" class="qnt">
         <div class="qi" style="background:#dbeafe;"><i class="bi bi-calendar-check-fill" style="color:#2563eb;"></i></div>
         <div><div class="qt">Schedules</div><div class="qs">Training sessions</div></div>
       </a>
     </div>
-    <div class="col-6 col-md-4 col-lg-2">
+    <div class="col-6 col-sm-4 col-md-3 col-xl-auto" style="min-width:140px;">
       <a href="{{ route('admin.quiz.index') }}" class="qnt">
         <div class="qi" style="background:#ccfbf1;"><i class="bi bi-patch-question-fill" style="color:#0d9488;"></i></div>
         <div><div class="qt">Quizzes</div><div class="qs">IQ manager</div></div>
       </a>
     </div>
-    <div class="col-6 col-md-4 col-lg-2">
+    <div class="col-6 col-sm-4 col-md-3 col-xl-auto" style="min-width:140px;">
       <a href="{{ route('admin.messages.index') }}" class="qnt">
         <div class="qi" style="background:#ffedd5;"><i class="bi bi-chat-dots-fill" style="color:#ea580c;"></i></div>
         <div>

@@ -437,6 +437,21 @@ class AdminController extends Controller
         return view('dashboard.admin.league', compact('results', 'standings', 'fixtures'));
     }
 
+    public function resultEdit(MatchResult $result)
+    {
+        return view('dashboard.admin.result-edit', compact('result'));
+    }
+
+    public function standingEdit(Standing $standing)
+    {
+        return view('dashboard.admin.standing-edit', compact('standing'));
+    }
+
+    public function fixtureEdit(NextFixture $fixture)
+    {
+        return view('dashboard.admin.fixture-edit', compact('fixture'));
+    }
+
     public function matchStore(Request $request)
     {
         $data = $request->validate([
@@ -447,11 +462,16 @@ class AdminController extends Controller
             'status_color' => 'required|in:success,danger,warning,secondary,primary,info',
             'week_label'   => 'nullable|string|max:20',
             'venue'        => 'nullable|string|max:200',
-            'kick_off_time'=> 'nullable|date_format:H:i',
+            'kick_off_time'=> 'nullable|string|max:8',
             'notes'        => 'nullable|string|max:300',
         ]);
+        $data['kick_off_time'] = $data['kick_off_time'] ?: null;
+        $data['week_label']    = $data['week_label']    ?: null;
+        $data['venue']         = $data['venue']         ?: null;
+        $data['notes']         = $data['notes']         ?: null;
         MatchResult::create($data);
-        return back()->with('success', "Match result added.");
+        $this->rebuildLeagueStandings();
+        return back()->with('success', "Match result added and league table updated.");
     }
 
     public function matchUpdate(Request $request, MatchResult $result)
@@ -464,17 +484,158 @@ class AdminController extends Controller
             'status_color' => 'required|in:success,danger,warning,secondary,primary,info',
             'week_label'   => 'nullable|string|max:20',
             'venue'        => 'nullable|string|max:200',
-            'kick_off_time'=> 'nullable|date_format:H:i',
+            'kick_off_time'=> 'nullable|string|max:8',
             'notes'        => 'nullable|string|max:300',
         ]);
+        $data['kick_off_time'] = $data['kick_off_time'] ?: null;
+        $data['week_label']    = $data['week_label']    ?: null;
+        $data['venue']         = $data['venue']         ?: null;
+        $data['notes']         = $data['notes']         ?: null;
         $result->update($data);
-        return back()->with('success', "Match result updated.");
+        $this->rebuildLeagueStandings();
+        return redirect()->route('admin.league.index', ['tab' => 'results'])
+            ->with('success', "Match result updated and league table refreshed.");
     }
 
     public function matchDestroy(MatchResult $result)
     {
         $result->delete();
-        return back()->with('success', "Match result deleted.");
+        $this->rebuildLeagueStandings();
+        return redirect()->route('admin.league.index', ['tab' => 'results'])
+            ->with('success', "Match result deleted and league table refreshed.");
+    }
+
+    private function rebuildLeagueStandings(): void
+    {
+        $leagueResults = MatchResult::where('competition', 'like', '%LSFA State League 2026/27%')->get();
+
+        $existingStandings = Standing::all()->keyBy(function ($standing) {
+            return mb_strtolower(trim(preg_replace('/\s+/', ' ', $standing->club_name)));
+        });
+
+        $stats = [];
+
+        foreach ($leagueResults as $result) {
+            $parsed = $this->parseScoreBadge($result->result_badge);
+            if (!$parsed) {
+                continue;
+            }
+
+            [$homeClub, $homeGoals, $awayGoals, $awayClub] = $parsed;
+            $homeKey = mb_strtolower($this->normalizeClubName($homeClub));
+            $awayKey = mb_strtolower($this->normalizeClubName($awayClub));
+
+            if (!isset($stats[$homeKey])) {
+                $stats[$homeKey] = [
+                    'club_name'        => $this->normalizeClubName($homeClub),
+                    'played'          => 0,
+                    'won'             => 0,
+                    'drawn'           => 0,
+                    'lost'            => 0,
+                    'goals_for'       => 0,
+                    'goals_against'   => 0,
+                    'points'          => 0,
+                    'is_featured_club'=> $existingStandings[$homeKey]->is_featured_club ?? false,
+                ];
+            }
+
+            if (!isset($stats[$awayKey])) {
+                $stats[$awayKey] = [
+                    'club_name'        => $this->normalizeClubName($awayClub),
+                    'played'          => 0,
+                    'won'             => 0,
+                    'drawn'           => 0,
+                    'lost'            => 0,
+                    'goals_for'       => 0,
+                    'goals_against'   => 0,
+                    'points'          => 0,
+                    'is_featured_club'=> $existingStandings[$awayKey]->is_featured_club ?? false,
+                ];
+            }
+
+            $stats[$homeKey]['played']++;
+            $stats[$awayKey]['played']++;
+            $stats[$homeKey]['goals_for'] += $homeGoals;
+            $stats[$homeKey]['goals_against'] += $awayGoals;
+            $stats[$awayKey]['goals_for'] += $awayGoals;
+            $stats[$awayKey]['goals_against'] += $homeGoals;
+
+            if ($homeGoals > $awayGoals) {
+                $stats[$homeKey]['won']++;
+                $stats[$homeKey]['points'] += 3;
+                $stats[$awayKey]['lost']++;
+            } elseif ($homeGoals < $awayGoals) {
+                $stats[$awayKey]['won']++;
+                $stats[$awayKey]['points'] += 3;
+                $stats[$homeKey]['lost']++;
+            } else {
+                $stats[$homeKey]['drawn']++;
+                $stats[$awayKey]['drawn']++;
+                $stats[$homeKey]['points'] += 1;
+                $stats[$awayKey]['points'] += 1;
+            }
+        }
+
+        // Preserve manual entries for clubs with no parsed league results.
+        foreach ($existingStandings as $key => $standing) {
+            if (!isset($stats[$key])) {
+                $stats[$key] = [
+                    'club_name'        => $standing->club_name,
+                    'played'          => $standing->played,
+                    'won'             => $standing->won,
+                    'drawn'           => $standing->drawn,
+                    'lost'            => $standing->lost,
+                    'goals_for'       => $standing->goals_for,
+                    'goals_against'   => $standing->goals_against,
+                    'points'          => $standing->points,
+                    'is_featured_club'=> $standing->is_featured_club,
+                ];
+            }
+        }
+
+        $sorted = collect($stats)->sort(function ($a, $b) {
+            if ($a['points'] !== $b['points']) {
+                return $b['points'] <=> $a['points'];
+            }
+            $goalDiffA = $a['goals_for'] - $a['goals_against'];
+            $goalDiffB = $b['goals_for'] - $b['goals_against'];
+            if ($goalDiffA !== $goalDiffB) {
+                return $goalDiffB <=> $goalDiffA;
+            }
+            if ($a['goals_for'] !== $b['goals_for']) {
+                return $b['goals_for'] <=> $a['goals_for'];
+            }
+            return strcasecmp($a['club_name'], $b['club_name']);
+        })->values();
+
+        $rank = 1;
+        foreach ($sorted as $row) {
+            Standing::updateOrCreate(
+                ['club_name' => $row['club_name']],
+                array_merge($row, ['rank' => $rank])
+            );
+            $rank++;
+        }
+    }
+
+    private function parseScoreBadge(string $badge): ?array
+    {
+        $badge = trim(preg_replace('/\s+/', ' ', $badge));
+        if (preg_match('/^(.+?)\s+(\d+)\s*[-–]\s*(\d+)\s+(.+)$/u', $badge, $matches)) {
+            return [
+                $this->normalizeClubName($matches[1]),
+                (int) $matches[2],
+                (int) $matches[3],
+                $this->normalizeClubName($matches[4]),
+            ];
+        }
+
+        return null;
+    }
+
+    private function normalizeClubName(string $club): string
+    {
+        return trim(preg_replace('/\s+/', ' ', $club));
     }
 
     // ── League Standings ───────────────────────────────────────────────────────
@@ -485,12 +646,18 @@ class AdminController extends Controller
             'rank'             => 'required|integer|min:1',
             'club_name'        => 'required|string|max:100',
             'played'           => 'required|integer|min:0',
+            'won'              => 'required|integer|min:0',
+            'drawn'            => 'required|integer|min:0',
+            'lost'             => 'required|integer|min:0',
+            'goals_for'        => 'required|integer|min:0',
+            'goals_against'    => 'required|integer|min:0',
             'points'           => 'required|integer|min:0',
             'is_featured_club' => 'nullable|boolean',
         ]);
         $data['is_featured_club'] = $request->boolean('is_featured_club');
         Standing::create($data);
-        return back()->with('success', "Standing entry added.");
+        return redirect()->route('admin.league.index', ['tab' => 'standings'])
+            ->with('success', "Standing entry added.");
     }
 
     public function standingUpdate(Request $request, Standing $standing)
@@ -499,18 +666,25 @@ class AdminController extends Controller
             'rank'             => 'required|integer|min:1',
             'club_name'        => 'required|string|max:100',
             'played'           => 'required|integer|min:0',
+            'won'              => 'required|integer|min:0',
+            'drawn'            => 'required|integer|min:0',
+            'lost'             => 'required|integer|min:0',
+            'goals_for'        => 'required|integer|min:0',
+            'goals_against'    => 'required|integer|min:0',
             'points'           => 'required|integer|min:0',
             'is_featured_club' => 'nullable|boolean',
         ]);
         $data['is_featured_club'] = $request->boolean('is_featured_club');
         $standing->update($data);
-        return back()->with('success', "Standing updated.");
+        return redirect()->route('admin.league.index', ['tab' => 'standings'])
+            ->with('success', "Standing updated.");
     }
 
     public function standingDestroy(Standing $standing)
     {
         $standing->delete();
-        return back()->with('success', "Standing entry deleted.");
+        return redirect()->route('admin.league.index', ['tab' => 'standings'])
+            ->with('success', "Standing entry deleted.");
     }
 
     // ── Next Fixtures ──────────────────────────────────────────────────────────
@@ -523,18 +697,17 @@ class AdminController extends Controller
             'away_team'    => 'required|string|max:100',
             'competition'  => 'required|string|max:150',
             'fixture_date' => 'required|date',
-            'kick_off_time'=> 'required|date_format:H:i',
+            'kick_off_time'=> 'required|string|max:8',
             'venue'        => 'required|string|max:200',
             'is_active'    => 'nullable|boolean',
         ]);
         $data['is_active'] = $request->boolean('is_active', true);
-
-        // Deactivate others if this one is active
         if ($data['is_active']) {
             NextFixture::where('is_active', true)->update(['is_active' => false]);
         }
         NextFixture::create($data);
-        return back()->with('success', "Next fixture added.");
+        return redirect()->route('admin.league.index', ['tab' => 'fixtures'])
+            ->with('success', "Next fixture added.");
     }
 
     public function fixtureUpdate(Request $request, NextFixture $fixture)
@@ -545,24 +718,25 @@ class AdminController extends Controller
             'away_team'    => 'required|string|max:100',
             'competition'  => 'required|string|max:150',
             'fixture_date' => 'required|date',
-            'kick_off_time'=> 'required|date_format:H:i',
+            'kick_off_time'=> 'required|string|max:8',
             'venue'        => 'required|string|max:200',
             'is_active'    => 'nullable|boolean',
         ]);
         $data['is_active'] = $request->boolean('is_active');
-
         if ($data['is_active']) {
             NextFixture::where('id', '!=', $fixture->id)
                 ->where('is_active', true)
                 ->update(['is_active' => false]);
         }
         $fixture->update($data);
-        return back()->with('success', "Fixture updated.");
+        return redirect()->route('admin.league.index', ['tab' => 'fixtures'])
+            ->with('success', "Fixture updated.");
     }
 
     public function fixtureDestroy(NextFixture $fixture)
     {
         $fixture->delete();
-        return back()->with('success', "Fixture deleted.");
+        return redirect()->route('admin.league.index', ['tab' => 'fixtures'])
+            ->with('success', "Fixture deleted.");
     }
 }

@@ -141,6 +141,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     // League — Match Results, Standings, Next Fixtures
     Route::get('/league',                       [AdminController::class, 'matchIndex'])->name('league.index');
+    Route::get('/league/results/{result}/edit',    [AdminController::class, 'resultEdit'])->name('league.results.edit');
+    Route::get('/league/standings/{standing}/edit',[AdminController::class, 'standingEdit'])->name('league.standings.edit');
+    Route::get('/league/fixtures/{fixture}/edit',  [AdminController::class, 'fixtureEdit'])->name('league.fixtures.edit');
     Route::post('/league/results',              [AdminController::class, 'matchStore'])->name('league.results.store');
     Route::put('/league/results/{result}',      [AdminController::class, 'matchUpdate'])->name('league.results.update');
     Route::delete('/league/results/{result}',   [AdminController::class, 'matchDestroy'])->name('league.results.destroy');
