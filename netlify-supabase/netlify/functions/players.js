@@ -14,8 +14,8 @@
 const { createClient } = require('@supabase/supabase-js');
 
 const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL  || 'https://fpqkewuoymyodveqbfjc.supabase.co',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
 // ── Helpers ──────────────────────────────────────────────────────
@@ -65,7 +65,7 @@ exports.handler = async (event) => {
       // All approved players (public listing)
       const { data, error } = await supabase
         .from('players')
-        .select('id, full_name, position, age, photo_url')
+        .select('id, full_name, position, age, photo_url, goals, assists, matches, quote')
         .eq('approved', true)
         .order('full_name');
 

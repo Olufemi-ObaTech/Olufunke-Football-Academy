@@ -1,42 +1,6 @@
 # ============================================================
-# netlify.toml — Netlify build & deployment configuration
-# Docs: https://docs.netlify.com/configure-builds/file-based-configuration/
+# NOTE: This file is intentionally empty / for reference only.
+# The ACTIVE netlify.toml is at: netlify-supabase/netlify.toml (project root)
+# Netlify reads from the base directory root, NOT from this subfolder.
+# Do NOT add build config here — it will be silently ignored.
 # ============================================================
-
-[build]
-  base    = "netlify-supabase"   # root of this sub-project
-  command = "npm run build"
-  publish = "out"                # Next.js static export output
-
-# Serverless functions directory
-[functions]
-  directory = "netlify/functions"
-  node_bundler = "esbuild"
-
-# ---- Redirects & rewrites --------------------------------
-# SPA catch-all (when NOT using static export)
-[[redirects]]
-  from   = "/*"
-  to     = "/index.html"
-  status = 200
-
-# Proxy Supabase auth callback back into site
-[[redirects]]
-  from   = "/auth/callback"
-  to     = "/.netlify/functions/auth-handler"
-  status = 200
-
-# ---- Environment variable groups -------------------------
-# Link your Supabase integration in Netlify UI under:
-#   Site Settings → Integrations → Supabase
-# Netlify will auto-inject SUPABASE_URL and SUPABASE_ANON_KEY.
-
-# ---- Headers (security) ----------------------------------
-[[headers]]
-  for = "/*"
-  [headers.values]
-    X-Frame-Options            = "DENY"
-    X-Content-Type-Options     = "nosniff"
-    Referrer-Policy            = "strict-origin-when-cross-origin"
-    Permissions-Policy         = "camera=(), microphone=(), geolocation=()"
-    Content-Security-Policy    = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://*.supabase.co; connect-src 'self' https://*.supabase.co wss://*.supabase.co;"

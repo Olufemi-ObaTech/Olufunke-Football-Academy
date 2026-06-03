@@ -1,11 +1,15 @@
 /**
- * pages/quiz.js — Weekly Quiz Page
- * Fetches questions from the Netlify /quiz function and submits answers.
+ * pages/quiz.js — Weekly Football IQ Quiz
+ * Fetches the active quiz week (not hardcoded week 1).
+ * Allows guest submissions — no login required to play.
  */
 
 import { useState, useEffect } from 'react';
+import Head from 'next/head';
 import { useSession } from '@supabase/auth-helpers-react';
 import { fetchQuiz, submitQuiz, fetchLeaderboard } from '../lib/api';
+import NavBar from '../components/NavBar';
+import Footer from '../components/Footer';
 
 export default function QuizPage() {
   const session = useSession();
@@ -13,6 +17,7 @@ export default function QuizPage() {
   const [quiz,        setQuiz]        = useState(null);
   const [questions,   setQuestions]   = useState([]);
   const [answers,     setAnswers]     = useState({});  // { questionId: optionId }
+  const [guestName,   setGuestName]   = useState('');
   const [result,      setResult]      = useState(null);
   const [leaderboard, setLeaderboard] = useState([]);
   const [loading,     setLoading]     = useState(true);
@@ -22,15 +27,16 @@ export default function QuizPage() {
   useEffect(() => {
     async function load() {
       try {
+        // Fetch active week (week=0 tells the API to use is_active=true)
         const [quizData, lbData] = await Promise.all([
-          fetchQuiz(1),
+          fetchActiveQuiz(),
           fetchLeaderboard(),
         ]);
         setQuiz(quizData.quiz);
         setQuestions(quizData.questions || []);
         setLeaderboard(lbData.leaderboard || []);
       } catch (err) {
-        setError('Failed to load quiz. Please try again.');
+        setError('Failed to load quiz. Please try again later.');
       } finally {
         setLoading(false);
       }
@@ -45,14 +51,15 @@ export default function QuizPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!session) {
-      setError('You must be logged in to submit the quiz.');
+    // Guest name required if not logged in
+    if (!session && !guestName.trim()) {
+      setError('Please enter your name to submit as a guest.');
       return;
     }
 
     const unanswered = questions.filter((q) => !answers[q.id]);
     if (unanswered.length > 0) {
-      setError('Please answer all questions before submitting.');
+      setError(`Please answer all ${questions.length} questions before submitting.`);
       return;
     }
 
@@ -65,108 +72,189 @@ export default function QuizPage() {
         selected_option_id,
       }));
 
-      const res = await submitQuiz(quiz.id, formattedAnswers);
+      const res = await submitQuiz(quiz.id, formattedAnswers, guestName.trim() || null);
       setResult(res);
     } catch (err) {
-      setError(err.message);
+      setError(err.message || 'Submission failed. Please try again.');
     } finally {
       setSubmitting(false);
     }
   };
 
-  if (loading) return <p style={{ fontFamily: 'sans-serif', padding: 24 }}>Loading quiz...</p>;
+  if (loading) {
+    return (
+      <>
+        <NavBar active="quiz" />
+        <p style={{ fontFamily: 'sans-serif', padding: 24, textAlign: 'center' }}>
+          Loading quiz…
+        </p>
+      </>
+    );
+  }
+
+  if (!quiz) {
+    return (
+      <>
+        <Head><title>Football IQ Quiz | OFA</title></Head>
+        <NavBar active="quiz" />
+        <main style={{ fontFamily: 'sans-serif', maxWidth: 700, margin: '0 auto', padding: 24, textAlign: 'center' }}>
+          <h1>⚽ Weekly Football IQ Quiz</h1>
+          <p style={{ color: '#666', marginTop: 24 }}>No active quiz this week. Check back soon!</p>
+        </main>
+        <Footer />
+      </>
+    );
+  }
 
   return (
-    <main style={{ fontFamily: 'sans-serif', maxWidth: 700, margin: '0 auto', padding: 24 }}>
-      <h1>⚽ Weekly Quiz</h1>
+    <>
+      <Head><title>Football IQ Quiz | OFA</title></Head>
+      <NavBar active="quiz" />
 
-      {quiz && <h2>{quiz.title}</h2>}
-
-      {error && <p style={{ color: 'red' }}>⚠ {error}</p>}
-
-      {/* ── Result screen ───────────────────────────────────── */}
-      {result ? (
-        <div style={{ background: '#f0fff4', border: '2px solid #38a169', borderRadius: 8, padding: 24, textAlign: 'center' }}>
-          <h3>Quiz Complete!</h3>
-          <p style={{ fontSize: 48, fontWeight: 'bold', color: '#38a169' }}>
-            {result.score} / {result.total}
-          </p>
-          <p>{result.message}</p>
-          <a href="/dashboard" style={{ color: '#0070f3' }}>View your dashboard →</a>
+      {/* Hero */}
+      <section className="py-4 text-white text-center" style={{ background: 'linear-gradient(135deg,#10316B 60%,#4CAF50 100%)' }}>
+        <div className="container">
+          <h1 className="fw-bold">⚽ Weekly Football IQ Quiz</h1>
+          <p className="lead opacity-75 mb-0">Test your football knowledge — anyone can play, no login required!</p>
         </div>
-      ) : (
-        /* ── Quiz form ──────────────────────────────────────── */
-        <form onSubmit={handleSubmit}>
-          {questions.map((q, qIndex) => (
-            <div key={q.id} style={{ marginBottom: 28, padding: 20, border: '1px solid #e2e8f0', borderRadius: 8 }}>
-              <p style={{ fontWeight: 'bold', marginBottom: 12 }}>
-                {qIndex + 1}. {q.question_text}
-              </p>
-              {(q.quiz_options || []).map((opt) => (
-                <label
-                  key={opt.id}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 10,
-                    padding: '8px 12px',
-                    marginBottom: 6,
-                    borderRadius: 6,
-                    cursor: 'pointer',
-                    background: answers[q.id] === opt.id ? '#ebf8ff' : 'transparent',
-                    border: `1px solid ${answers[q.id] === opt.id ? '#0070f3' : '#e2e8f0'}`,
-                  }}
-                >
-                  <input
-                    type="radio"
-                    name={q.id}
-                    value={opt.id}
-                    checked={answers[q.id] === opt.id}
-                    onChange={() => handleSelect(q.id, opt.id)}
-                  />
-                  {opt.option_text}
-                </label>
-              ))}
-            </div>
-          ))}
+      </section>
 
-          {!session && (
-            <p style={{ color: '#d69e2e', marginBottom: 12 }}>
-              ⚠ <a href="/login">Login</a> to submit your answers and save your score.
+      <main className="container py-5" style={{ maxWidth: 760 }}>
+        <h2 className="fw-bold mb-1" style={{ color: '#10316B' }}>{quiz.title}</h2>
+        {quiz.description && <p className="text-muted mb-4">{quiz.description}</p>}
+
+        {error && (
+          <div className="alert alert-danger">
+            <i className="bi bi-exclamation-triangle-fill me-2"></i>{error}
+          </div>
+        )}
+
+        {/* ── Result screen ─────────────────────────────────────── */}
+        {result ? (
+          <div className="p-4 rounded-3 text-center shadow" style={{ background: '#f0fff4', border: '2px solid #38a169' }}>
+            <h3 className="fw-bold">Quiz Complete! 🎉</h3>
+            <p style={{ fontSize: 64, fontWeight: 'bold', color: '#38a169', margin: '12px 0' }}>
+              {result.score} / {result.total}
             </p>
-          )}
+            <p className="text-muted">{result.message}</p>
+            {session ? (
+              <a href="/dashboard" className="btn btn-primary mt-2">View your dashboard →</a>
+            ) : (
+              <a href="/login" className="btn btn-outline-primary mt-2">Login to track your scores →</a>
+            )}
+          </div>
+        ) : (
+          /* ── Quiz form ──────────────────────────────────────────── */
+          <form onSubmit={handleSubmit}>
+            {/* Guest name field */}
+            {!session && (
+              <div className="mb-4 p-3 bg-light rounded-3">
+                <label className="form-label fw-semibold">
+                  Your Name <span className="text-danger">*</span>
+                  <small className="text-muted ms-2">(shown on leaderboard)</small>
+                </label>
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Enter your name"
+                  value={guestName}
+                  onChange={(e) => setGuestName(e.target.value)}
+                  maxLength={60}
+                  required
+                />
+                <small className="text-muted">
+                  <a href="/login">Login</a> to track your score history.
+                </small>
+              </div>
+            )}
 
-          <button
-            type="submit"
-            disabled={submitting || !session}
-            style={{
-              padding: '12px 24px',
-              background: session ? '#0070f3' : '#cbd5e0',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 6,
-              fontSize: 16,
-              cursor: session ? 'pointer' : 'not-allowed',
-            }}
-          >
-            {submitting ? 'Submitting...' : 'Submit Answers'}
-          </button>
-        </form>
-      )}
-
-      {/* ── Leaderboard ──────────────────────────────────────── */}
-      {leaderboard.length > 0 && (
-        <section style={{ marginTop: 48 }}>
-          <h2>🏆 Leaderboard</h2>
-          <ol>
-            {leaderboard.map((entry, i) => (
-              <li key={i} style={{ padding: '6px 0', borderBottom: '1px solid #eee' }}>
-                {entry.users?.email} — <strong>{entry.score}</strong> pts
-              </li>
+            {questions.map((q, qIndex) => (
+              <div
+                key={q.id}
+                className="mb-4 p-4 rounded-3"
+                style={{ border: '1px solid #e2e8f0', background: '#fff' }}
+              >
+                <p className="fw-bold mb-3">
+                  {qIndex + 1}. {q.question_text}
+                </p>
+                {(q.quiz_options || []).map((opt) => (
+                  <label
+                    key={opt.id}
+                    className="d-flex align-items-center gap-2 p-2 mb-2 rounded-2"
+                    style={{
+                      cursor: 'pointer',
+                      background: answers[q.id] === opt.id ? '#ebf8ff' : 'transparent',
+                      border: `1px solid ${answers[q.id] === opt.id ? '#0070f3' : '#e2e8f0'}`,
+                    }}
+                  >
+                    <input
+                      type="radio"
+                      name={q.id}
+                      value={opt.id}
+                      checked={answers[q.id] === opt.id}
+                      onChange={() => handleSelect(q.id, opt.id)}
+                    />
+                    {opt.option_text}
+                  </label>
+                ))}
+              </div>
             ))}
-          </ol>
-        </section>
-      )}
-    </main>
+
+            <button
+              type="submit"
+              disabled={submitting}
+              className="btn btn-success btn-lg w-100 fw-bold"
+            >
+              {submitting ? 'Submitting…' : 'Submit Answers'}
+            </button>
+          </form>
+        )}
+
+        {/* ── Leaderboard ──────────────────────────────────────── */}
+        {leaderboard.length > 0 && (
+          <section className="mt-5">
+            <h2 className="fw-bold" style={{ color: '#10316B' }}>🏆 Leaderboard</h2>
+            <div className="table-responsive">
+              <table className="table table-sm table-hover align-middle">
+                <thead style={{ background: '#10316B', color: '#fff' }}>
+                  <tr>
+                    <th>#</th>
+                    <th>Player</th>
+                    <th className="text-center">Score</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {leaderboard.map((entry, i) => (
+                    <tr key={i}>
+                      <td className="fw-bold">{i + 1}</td>
+                      <td>{entry.profiles?.full_name || 'Anonymous'}</td>
+                      <td className="text-center fw-bold">{entry.score}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
+      </main>
+
+      <Footer />
+    </>
   );
+}
+
+// ── Fetch the active quiz week from Netlify function ─────────────────────────
+async function fetchActiveQuiz() {
+  const BASE = process.env.NODE_ENV === 'development'
+    ? 'http://localhost:8888/.netlify/functions'
+    : '/.netlify/functions';
+
+  // First try to get active week
+  const res = await fetch(`${BASE}/quiz?active=true`);
+  if (res.ok) return res.json();
+
+  // Fallback: get week 1
+  const fallback = await fetch(`${BASE}/quiz?week=1`);
+  if (!fallback.ok) throw new Error('No quiz available');
+  return fallback.json();
 }

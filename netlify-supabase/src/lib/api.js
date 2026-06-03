@@ -65,12 +65,15 @@ export async function fetchQuiz(week = 1) {
   return res.json();
 }
 
-export async function submitQuiz(weekId, answers) {
+export async function submitQuiz(weekId, answers, guestName = null) {
   const headers = await getAuthHeader();
+  const body = { week_id: weekId, answers };
+  if (guestName) body.guest_name = guestName;
+
   const res = await fetch(`${BASE}/quiz`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...headers },
-    body: JSON.stringify({ week_id: weekId, answers }),
+    body: JSON.stringify(body),
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || 'Quiz submission failed');

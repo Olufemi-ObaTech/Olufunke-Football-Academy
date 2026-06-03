@@ -15,13 +15,19 @@ let _adminClient = null;
  * Anon client — respects Row Level Security.
  * Safe for operations that should be user-scoped.
  */
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://fpqkewuoymyodveqbfjc.supabase.co';
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+
+if (!SUPABASE_URL) {
+  throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL environment variable');
+}
 
 function getAnonClient() {
   if (!_anonClient) {
+    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if (!anonKey) throw new Error('Missing NEXT_PUBLIC_SUPABASE_ANON_KEY environment variable');
     _anonClient = createClient(
       SUPABASE_URL,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
+      anonKey,
       {
         auth: {
           persistSession: false,  // Netlify functions are stateless
@@ -39,9 +45,11 @@ function getAnonClient() {
  */
 function getAdminClient() {
   if (!_adminClient) {
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!serviceKey) throw new Error('Missing SUPABASE_SERVICE_ROLE_KEY environment variable');
     _adminClient = createClient(
       SUPABASE_URL,
-      process.env.SUPABASE_SERVICE_ROLE_KEY || '',
+      serviceKey,
       {
         auth: {
           persistSession: false,
@@ -58,9 +66,11 @@ function getAdminClient() {
  * Useful for server-side operations that should still respect RLS.
  */
 function getUserClient(accessToken) {
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!anonKey) throw new Error('Missing NEXT_PUBLIC_SUPABASE_ANON_KEY environment variable');
   return createClient(
     SUPABASE_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
+    anonKey,
     {
       global: {
         headers: { Authorization: `Bearer ${accessToken}` },

@@ -405,12 +405,12 @@ export default function Home() {
                 <div className="col" key={p.id}>
                   <div className="player-card p-4 text-center h-100 d-flex flex-column align-items-center" style={{borderTop:'4px solid #10316B'}}>
                     <div className="mb-3">
-                      <img src={p.image_path||LOGO} alt={p.name} className="shadow"
+                      <img src={p.photo_url||LOGO} alt={p.full_name} className="shadow"
                         style={{width:110,height:110,borderRadius:'50%',objectFit:'cover',border:'3px solid #4CAF50',display:'block'}}
                         onError={e=>{e.target.style.display='none';e.target.nextSibling.style.display='flex';}} />
-                      <div className="profile-img-fallback shadow" style={{display:'none'}}>{(p.name||'').charAt(0).toUpperCase()}</div>
+                      <div className="profile-img-fallback shadow" style={{display:'none'}}>{(p.full_name||'').charAt(0).toUpperCase()}</div>
                     </div>
-                    <h5 className="fw-bold mb-0" style={{color:'#10316B'}}>{p.name}</h5>
+                    <h5 className="fw-bold mb-0" style={{color:'#10316B'}}>{p.full_name}</h5>
                     <span className="badge mt-1 mb-2" style={{background:'#4CAF50',fontSize:'.85rem'}}>{p.position} &nbsp;|&nbsp; Age {p.age}</span>
                     <div className="d-flex gap-3 justify-content-center mb-3">
                       <div className="text-center"><div className="fw-bold fs-5" style={{color:'#10316B'}}>{p.goals}</div><small className="text-muted">Goals</small></div>

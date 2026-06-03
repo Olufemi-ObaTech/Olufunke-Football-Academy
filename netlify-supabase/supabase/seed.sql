@@ -26,10 +26,10 @@ INSERT INTO public.match_results (match_date, opponent, competition, result_badg
   ('2026-05-20', 'Young Striker Fc',       'LSFA State League 2026/27 — Atlantic Conference',     'Young Striker 2 - 4 Olufunke FA',          'success',   'WK5', 'MARACANA FOOTBALL FIELD AJEGUNLE LAGOS');
 
 -- ── Players (Spotlight) ───────────────────────────────────────
-INSERT INTO public.players (name, position, age, goals, assists, matches, quote, image_path) VALUES
-  ('Ejiogu Enoch Chibueze',    'Midfielder', 16, 5,  7, 12, 'My dream is to make OFA and Nigeria proud one day.',          'images/Ejiogu Chibueze.jpg'),
-  ('Emmanuel Ajose',           'Forward',    18, 8,  8, 15, 'OFA taught me confidence, resilience, and teamwork.',         'images/Ajose Emmanuel.jpg'),
-  ('Okpara Chidera Emmanuel',  'Forward',    17, 15, 4, 13, 'Every session at OFA makes me better, on and off the pitch.', 'images/Okpara Chidera.jpg');
+INSERT INTO public.players (full_name, position, age, goals, assists, matches, quote, photo_url, approved) VALUES
+  ('Ejiogu Enoch Chibueze',    'Midfielder', 16, 5,  7, 12, 'My dream is to make OFA and Nigeria proud one day.',          'images/Ejiogu Chibueze.jpg',  TRUE),
+  ('Emmanuel Ajose',           'Forward',    18, 8,  8, 15, 'OFA taught me confidence, resilience, and teamwork.',         'images/Ajose Emmanuel.jpg',   TRUE),
+  ('Okpara Chidera Emmanuel',  'Forward',    17, 15, 4, 13, 'Every session at OFA makes me better, on and off the pitch.', 'images/Okpara Chidera.jpg',   TRUE);
 
 -- ── Management Team ───────────────────────────────────────────
 INSERT INTO public.management_team (name, role, email, sort_order) VALUES

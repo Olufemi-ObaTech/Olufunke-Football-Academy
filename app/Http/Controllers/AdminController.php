@@ -213,7 +213,7 @@ class AdminController extends Controller
             'image'      => 'nullable|image|max:2048',
         ]);
 
-        $imagePath = 'images/Ofa new logo1.jpg';
+        $imagePath = 'images/OFA New Logo.jpg';
         if ($request->hasFile('image')) {
             $imagePath = $request->file('image')->store('players', 'public');
             $imagePath = 'storage/' . $imagePath;

@@ -82,6 +82,11 @@ use Illuminate\Support\Str;
             font-size: 2.5rem;
             border: 3px solid #4CAF50;
         }
+        /* Social icon brand colours */
+        .text-youtube   { color: #FF0000; transition: opacity .2s; }
+        .text-facebook  { color: #1877F2; transition: opacity .2s; }
+        .text-instagram { color: #E1306C; transition: opacity .2s; }
+        .text-youtube:hover, .text-facebook:hover, .text-instagram:hover { opacity: .75; }
     </style>
 </head>
 <body>
@@ -207,8 +212,8 @@ use Illuminate\Support\Str;
                 <div class="col-md-4 d-none d-md-block">
                     <ul class="nav justify-content-center">
                         <li class="nav-item"><a href="{{ url('/') }}" class="nav-link px-2 text-light">Home</a></li>
-                        <li class="nav-item"><a href="{{ url('/about-us') }}" class="nav-link px-2 text-light">About Us.</a></li>
-                        <li class="nav-item"><a href="{{ url('/contact-us') }}" class="nav-link px-2 text-light">Contact Us.</a></li>
+                        <li class="nav-item"><a href="{{ url('/about-us') }}" class="nav-link px-2 text-light">About Us</a></li>
+                        <li class="nav-item"><a href="{{ url('/contact-us') }}" class="nav-link px-2 text-light">Contact Us</a></li>
                     </ul>
                 </div>
                 <div class="col-sm-12 col-md-4 text-center text-md-end">
@@ -219,7 +224,7 @@ use Illuminate\Support\Str;
                             </a>
                         </li>
                         <li class="ms-3">
-                            <a class="text-facebook" href="https://web.facebook.com/people/Olufunke-Football-Academy/61554694136830/?_rdc=1&_rdr#" target="_blank" rel="noopener noreferrer" aria-label="Visit our Facebook page">
+                            <a class="text-facebook" href="https://web.facebook.com/people/Olufunke-Football-Academy/61554694136830/" target="_blank" rel="noopener noreferrer" aria-label="Visit our Facebook page">
                                 <i class="bi bi-facebook fs-3" aria-hidden="true"></i>
                             </a>
                         </li>

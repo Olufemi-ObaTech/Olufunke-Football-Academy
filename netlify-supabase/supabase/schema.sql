@@ -42,14 +42,16 @@ CREATE TRIGGER on_auth_user_created
 -- ────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.players (
   id           BIGSERIAL PRIMARY KEY,
-  name         TEXT NOT NULL,
+  user_id      UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+  full_name    TEXT NOT NULL,
   position     TEXT NOT NULL,
   age          INT,
+  photo_url    TEXT DEFAULT 'images/Ofa new logo1.jpg',
   goals        INT DEFAULT 0,
   assists      INT DEFAULT 0,
   matches      INT DEFAULT 0,
   quote        TEXT,
-  image_path   TEXT DEFAULT 'images/Ofa new logo1.jpg',
+  approved     BOOLEAN DEFAULT FALSE,
   created_at   TIMESTAMPTZ DEFAULT NOW(),
   updated_at   TIMESTAMPTZ DEFAULT NOW()
 );
@@ -78,7 +80,7 @@ CREATE TABLE IF NOT EXISTS public.standings (
 -- ────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.player_ratings (
   id           UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  player_id    UUID NOT NULL REFERENCES public.players(id) ON DELETE CASCADE,
+  player_id    BIGINT NOT NULL REFERENCES public.players(id) ON DELETE CASCADE,
   speed        INT CHECK (speed BETWEEN 0 AND 100),
   passing      INT CHECK (passing BETWEEN 0 AND 100),
   shooting     INT CHECK (shooting BETWEEN 0 AND 100),
@@ -89,7 +91,7 @@ CREATE TABLE IF NOT EXISTS public.player_ratings (
 );
 
 -- ────────────────────────────────────────────────────────────
--- 4. COURSES & LESSONS
+-- 5. COURSES & LESSONS
 -- ────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.courses (
   id           UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -126,7 +128,12 @@ CREATE TABLE IF NOT EXISTS public.lesson_progress (
 CREATE TABLE IF NOT EXISTS public.quiz_weeks (
   id           UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   title        TEXT NOT NULL,
+  description  TEXT,
+  theme        TEXT,
   week_number  INT UNIQUE NOT NULL,
+  week_start   DATE,
+  week_end     DATE,
+  time_limit   INT DEFAULT 600,  -- seconds, default 10 minutes
   is_active    BOOLEAN DEFAULT TRUE,
   created_at   TIMESTAMPTZ DEFAULT NOW()
 );
@@ -135,6 +142,10 @@ CREATE TABLE IF NOT EXISTS public.quiz_questions (
   id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   quiz_week_id    UUID NOT NULL REFERENCES public.quiz_weeks(id) ON DELETE CASCADE,
   question_text   TEXT NOT NULL,
+  difficulty      TEXT DEFAULT 'medium' CHECK (difficulty IN ('easy','medium','hard')),
+  category        TEXT,
+  explanation     TEXT,
+  "order"         INT DEFAULT 0,
   created_at      TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -142,16 +153,20 @@ CREATE TABLE IF NOT EXISTS public.quiz_options (
   id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   question_id     UUID NOT NULL REFERENCES public.quiz_questions(id) ON DELETE CASCADE,
   option_text     TEXT NOT NULL,
-  is_correct      BOOLEAN DEFAULT FALSE
+  is_correct      BOOLEAN DEFAULT FALSE,
+  "order"         INT DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS public.quiz_attempts (
   id               UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id          UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  user_id          UUID REFERENCES auth.users(id) ON DELETE CASCADE,
   quiz_week_id     UUID NOT NULL REFERENCES public.quiz_weeks(id),
+  guest_name       TEXT,
   score            INT DEFAULT 0,
   total_questions  INT DEFAULT 0,
-  answers_json     JSONB,
+  time_taken       INT,            -- seconds
+  answers          JSONB,          -- renamed from answers_json for consistency with Laravel model
+  ip_address       TEXT,
   completed_at     TIMESTAMPTZ DEFAULT NOW(),
   UNIQUE (user_id, quiz_week_id)
 );
@@ -246,6 +261,7 @@ CREATE TABLE IF NOT EXISTS public.management_team (
 -- Indexes for performance
 -- ────────────────────────────────────────────────────────────
 CREATE INDEX IF NOT EXISTS idx_players_approved      ON public.players(approved);
+CREATE INDEX IF NOT EXISTS idx_players_user_id       ON public.players(user_id);
 CREATE INDEX IF NOT EXISTS idx_lessons_course_id     ON public.lessons(course_id);
 CREATE INDEX IF NOT EXISTS idx_lesson_progress_user  ON public.lesson_progress(user_id);
 CREATE INDEX IF NOT EXISTS idx_quiz_attempts_user    ON public.quiz_attempts(user_id);

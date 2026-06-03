@@ -137,8 +137,8 @@ export default function About() {
           <h2 className="fw-bold text-center mb-5" style={{color:'#10316B'}}>Our Unique Programs</h2>
           <div className="row g-4">
             {[
-              ['🎓','Football Education','Modular video courses on technical skills, tactical theory, and sports psychology.','/dashboard','Explore E-Learning','btn-primary'],
-              ['⚽','Technical Training','Individual and group sessions focusing on ball mastery, tactical awareness, and physical fitness.','/dashboard','View Program','btn-success'],
+              ['🎓','Football Education','Modular video courses on technical skills, tactical theory, and sports psychology.','/login','Explore E-Learning','btn-primary'],
+              ['⚽','Technical Training','Individual and group sessions focusing on ball mastery, tactical awareness, and physical fitness.','/contact','Book a Session','btn-success'],
               ['🏥','Health Education','Nutrition, mental health, and injury prevention counseling led by certified professionals.',null,null,null],
               ['🌱','Environmental Initiatives','"Green Goal" campaigns teaching sustainability and stewardship of local playing fields.',null,null,null],
               ['🤲','Community Engagement','Volunteering, mentorship and outreach programs foster inclusivity and giving back.',null,null,null],

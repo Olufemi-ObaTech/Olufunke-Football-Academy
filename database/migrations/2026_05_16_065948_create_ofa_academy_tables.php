@@ -24,9 +24,13 @@ return new class extends Migration
             $table->id();
             $table->date('match_date');
             $table->string('opponent');
-            $table->string('competition');
+            $table->string('competition')->nullable();
             $table->string('result_badge'); // e.g., "OFA 2 - 0 ANFA"
             $table->string('status_color')->default('success'); // Bootstrap color class
+            $table->string('week_label')->nullable();
+            $table->string('venue')->nullable();
+            $table->time('kick_off_time')->nullable();
+            $table->text('notes')->nullable();
             $table->timestamps();
         });
 
@@ -35,8 +39,13 @@ return new class extends Migration
             $table->id();
             $table->integer('rank');
             $table->string('club_name');
-            $table->integer('played');
-            $table->integer('points');
+            $table->integer('played')->default(0);
+            $table->integer('won')->default(0);
+            $table->integer('drawn')->default(0);
+            $table->integer('lost')->default(0);
+            $table->integer('goals_for')->default(0);
+            $table->integer('goals_against')->default(0);
+            $table->integer('points')->default(0);
             $table->boolean('is_featured_club')->default(false); // Highlight OLUFUNKE FA
             $table->timestamps();
         });

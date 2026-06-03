@@ -33,7 +33,10 @@ class RegisterController extends Controller
         if ($request->hasFile('profile_photo')) {
             $file = $request->file('profile_photo');
             $filename = 'player_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-            $profilePhotoPath = $file->storeAs('uploads/players', $filename, 'public');
+            // Store under public disk; path is relative to storage/app/public
+            $storedPath = $file->storeAs('players', $filename, 'public');
+            // Prefix with 'storage/' so asset($user->profile_photo) resolves correctly
+            $profilePhotoPath = 'storage/' . $storedPath;
         }
 
         $user = User::create([

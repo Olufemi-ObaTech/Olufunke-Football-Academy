@@ -136,9 +136,9 @@ class QuizController extends Controller
                         ->where('user_id', auth()->id())
                         ->delete();
                 } else {
-                    // New attempt is not better — still save it temporarily to show result,
-                    // but delete it right after creating so the leaderboard stays clean
-                    $attempt = QuizAttempt::create([
+                    // New attempt is not better — show result but don't pollute leaderboard.
+                    // Create a temporary (non-persisted) attempt object for the result view.
+                    $tempAttempt = new QuizAttempt([
                         'quiz_week_id'    => $quizWeek->id,
                         'user_id'         => auth()->id(),
                         'guest_name'      => null,
@@ -148,8 +148,14 @@ class QuizController extends Controller
                         'answers'         => $answersLog,
                         'ip_address'      => $request->ip(),
                     ]);
-                    // Redirect to result page, then the old best remains on leaderboard
-                    return redirect()->route('quiz.result', $attempt->id)
+                    $tempAttempt->save();
+
+                    $redirectId = $tempAttempt->id;
+
+                    // Immediately delete it so the leaderboard stays clean
+                    $tempAttempt->delete();
+
+                    return redirect()->route('quiz.result', $redirectId)
                         ->with('info', 'Good try! Your previous best score of '.$bestExisting->score.'/'.$bestExisting->total_questions.' is still your highest.');
                 }
             }

@@ -70,6 +70,7 @@
                                     @elseif($course->category === 'health') bg-danger
                                     @elseif($course->category === 'environment') bg-success
                                     @elseif($course->category === 'community') bg-info text-dark
+                                    @elseif($course->category === 'education') bg-secondary
                                     @else bg-success @endif">
                                     {{ ucfirst($course->category) }}
                                 </span>
@@ -309,7 +310,7 @@ document.querySelectorAll('.progress-btn').forEach(function(btn) {
         const status   = this.dataset.status;
         const percent  = this.dataset.percent;
 
-        fetch('{{ url("/football-education/progress") }}/' + courseId, {
+        fetch('{{ route("progress.update", ":id") }}'.replace(':id', courseId), {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

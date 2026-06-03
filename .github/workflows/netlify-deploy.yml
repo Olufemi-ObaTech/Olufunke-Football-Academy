@@ -19,25 +19,23 @@ jobs:
           cache: 'npm'
           cache-dependency-path: netlify-supabase/package-lock.json
 
-      - name: Install dependencies
+      - name: Install Netlify CLI
+        run: npm install -g netlify-cli@latest
+
+      - name: Install project dependencies
         run: npm install
         working-directory: netlify-supabase
 
-      - name: Build
-        run: npm run build
+      # Build is handled by Netlify CLI via `netlify deploy --build`
+      # which invokes the netlify.toml build command AND runs
+      # @netlify/plugin-nextjs so SSR / server components work correctly.
+      - name: Deploy to Netlify (production build)
+        run: netlify deploy --build --prod
         working-directory: netlify-supabase
         env:
+          NETLIFY_AUTH_TOKEN:            ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID:               ${{ secrets.NETLIFY_SITE_ID }}
           NEXT_PUBLIC_SUPABASE_URL:      ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-          NEXT_PUBLIC_SITE_URL:          https://olufunkef00tballacademy.netlify.app
-
-      - name: Deploy to Netlify
-        uses: nwtgck/actions-netlify@v3.0
-        with:
-          publish-dir: 'netlify-supabase/.next'
-          production-branch: main
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          deploy-message: "Deploy ${{ github.sha }}"
-        env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID:    ${{ secrets.NETLIFY_SITE_ID }}
+          SUPABASE_SERVICE_ROLE_KEY:     ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          NEXT_PUBLIC_SITE_URL:          ${{ secrets.NEXT_PUBLIC_SITE_URL }}

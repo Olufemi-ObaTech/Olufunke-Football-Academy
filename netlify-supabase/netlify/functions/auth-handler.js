@@ -6,11 +6,11 @@
 
 const { createClient } = require('@supabase/supabase-js');
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://olufunkef00tballacademy.netlify.app';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL;
 
 const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL    || 'https://fpqkewuoymyodveqbfjc.supabase.co',
-  process.env.SUPABASE_SERVICE_ROLE_KEY   || ''
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
 exports.handler = async (event) => {

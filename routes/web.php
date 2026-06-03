@@ -13,7 +13,7 @@ use App\Http\Controllers\Auth\RegisterController;
 Route::get('/',          [HomeController::class, 'index'])->name('home');
 Route::get('/about-us',  [PageController::class, 'about'])->name('about');
 Route::get('/our-store', [PageController::class, 'store'])->name('store');
-Route::get('/contact-us',[PageController::class, 'contact'])->name('contact');
+Route::get('/contact-us', [PageController::class, 'contact'])->name('contact');
 Route::post('/contact-us',[PageController::class, 'contactSubmit'])->name('contact.submit');
 
 // ── Serve uploaded files (without symlink) ──────────────────────────────────────
@@ -28,10 +28,10 @@ Route::get('/storage/{path}', function($path) {
 // ── Weekly Football IQ Quiz (Public — no login required) ───────────────────────
 Route::prefix('quiz')->name('quiz.')->group(function () {
     Route::get('/',                          [QuizController::class, 'index'])->name('index');
+    Route::get('/result/{attempt}',          [QuizController::class, 'result'])->name('result');  // MUST be before /{quizWeek}
     Route::get('/{quizWeek}',                [QuizController::class, 'show'])->name('show');
     Route::get('/{quizWeek}/take',           [QuizController::class, 'take'])->name('take');
     Route::post('/{quizWeek}/submit',        [QuizController::class, 'submit'])->name('submit');
-    Route::get('/result/{attempt}',          [QuizController::class, 'result'])->name('result');
 });
 
 // ── Auth Routes ────────────────────────────────────────────────────────────────
