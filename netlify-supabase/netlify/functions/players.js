@@ -13,10 +13,9 @@
 
 const { createClient } = require('@supabase/supabase-js');
 
-// Server-side client — full access via service role
 const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
+  process.env.NEXT_PUBLIC_SUPABASE_URL  || 'https://fpqkewuoymyodveqbfjc.supabase.co',
+  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
 );
 
 // ── Helpers ──────────────────────────────────────────────────────

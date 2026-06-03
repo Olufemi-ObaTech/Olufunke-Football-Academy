@@ -15,11 +15,13 @@ let _adminClient = null;
  * Anon client — respects Row Level Security.
  * Safe for operations that should be user-scoped.
  */
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://fpqkewuoymyodveqbfjc.supabase.co';
+
 function getAnonClient() {
   if (!_anonClient) {
     _anonClient = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      SUPABASE_URL,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
       {
         auth: {
           persistSession: false,  // Netlify functions are stateless
@@ -38,8 +40,8 @@ function getAnonClient() {
 function getAdminClient() {
   if (!_adminClient) {
     _adminClient = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL,
-      process.env.SUPABASE_SERVICE_ROLE_KEY,
+      SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY || '',
       {
         auth: {
           persistSession: false,
@@ -57,8 +59,8 @@ function getAdminClient() {
  */
 function getUserClient(accessToken) {
   return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
     {
       global: {
         headers: { Authorization: `Bearer ${accessToken}` },
