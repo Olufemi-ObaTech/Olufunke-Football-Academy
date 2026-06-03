@@ -141,3 +141,24 @@ CREATE POLICY "packages_select_active" ON public.booking_packages FOR SELECT
 
 CREATE POLICY "packages_mutate_admin"  ON public.booking_packages FOR ALL
   USING (public.is_admin());
+
+-- ────────────────────────────────────────────────────────────
+-- POSTS — public read, admin write
+-- ────────────────────────────────────────────────────────────
+ALTER TABLE public.posts ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "posts_select_all"   ON public.posts FOR SELECT USING (TRUE);
+CREATE POLICY "posts_mutate_admin" ON public.posts FOR ALL    USING (public.is_admin());
+
+-- ────────────────────────────────────────────────────────────
+-- MANAGEMENT TEAM — public read, admin write
+-- ────────────────────────────────────────────────────────────
+ALTER TABLE public.management_team ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "team_select_all"   ON public.management_team FOR SELECT USING (TRUE);
+CREATE POLICY "team_mutate_admin" ON public.management_team FOR ALL    USING (public.is_admin());
+
+-- ────────────────────────────────────────────────────────────
+-- STANDINGS — public read, admin write
+-- ────────────────────────────────────────────────────────────
+ALTER TABLE public.standings ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "standings_select_all"   ON public.standings FOR SELECT USING (TRUE);
+CREATE POLICY "standings_mutate_admin" ON public.standings FOR ALL    USING (public.is_admin());

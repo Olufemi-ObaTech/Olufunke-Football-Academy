@@ -230,6 +230,19 @@ CREATE TABLE IF NOT EXISTS public.booking_packages (
 );
 
 -- ────────────────────────────────────────────────────────────
+-- 10. MANAGEMENT TEAM — mirrors Laravel management_team table
+-- ────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS public.management_team (
+  id          BIGSERIAL PRIMARY KEY,
+  name        TEXT NOT NULL,
+  role        TEXT NOT NULL,
+  email       TEXT,
+  sort_order  INT DEFAULT 0,
+  created_at  TIMESTAMPTZ DEFAULT NOW(),
+  updated_at  TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ────────────────────────────────────────────────────────────
 -- Indexes for performance
 -- ────────────────────────────────────────────────────────────
 CREATE INDEX IF NOT EXISTS idx_players_approved      ON public.players(approved);
