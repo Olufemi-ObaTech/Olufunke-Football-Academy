@@ -1,8 +1,12 @@
 *.log
 .DS_Store
 .env
+.env.local
+.env.*.local
 .env.backup
 .env.production
+netlify-supabase/.next/
+netlify-supabase/node_modules/
 .phpactor.json
 .phpunit.result.cache
 /.fleet

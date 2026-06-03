@@ -1,0 +1,132 @@
+{
+  "_comment": "Import this file into n8n: Menu → Import Workflow",
+  "workflows": [
+
+    {
+      "name": "OFA — Contact Form → Email Notification",
+      "description": "Triggered by the Netlify contact function webhook. Sends an email notification when a new contact message arrives.",
+      "nodes": [
+        {
+          "id": "1",
+          "type": "n8n-nodes-base.webhook",
+          "name": "Netlify Contact Webhook",
+          "parameters": {
+            "httpMethod": "POST",
+            "path": "ofa-contact",
+            "responseMode": "onReceived",
+            "responseData": "{ \"received\": true }"
+          },
+          "notes": "Set N8N_CONTACT_WEBHOOK in Netlify to: https://your-n8n-instance.com/webhook/ofa-contact"
+        },
+        {
+          "id": "2",
+          "type": "n8n-nodes-base.emailSend",
+          "name": "Send Email to Admin",
+          "parameters": {
+            "to": "admin@ofaacademy.com",
+            "subject": "New Contact Message: {{ $json.subject }}",
+            "text": "Name: {{ $json.name }}\nEmail: {{ $json.email }}\n\nMessage:\n{{ $json.message }}\n\n---\nMessage ID: {{ $json.id }}"
+          }
+        }
+      ],
+      "connections": {
+        "Netlify Contact Webhook": {
+          "main": [[{ "node": "Send Email to Admin", "type": "main", "index": 0 }]]
+        }
+      }
+    },
+
+    {
+      "name": "OFA — New User → Welcome Email",
+      "description": "Listens to Supabase auth.users inserts via a webhook and sends a welcome email.",
+      "nodes": [
+        {
+          "id": "1",
+          "type": "n8n-nodes-base.webhook",
+          "name": "Supabase New User",
+          "parameters": {
+            "httpMethod": "POST",
+            "path": "ofa-new-user"
+          },
+          "notes": "In Supabase: Database → Webhooks → Create webhook on auth.users INSERT → point to this URL"
+        },
+        {
+          "id": "2",
+          "type": "n8n-nodes-base.emailSend",
+          "name": "Welcome Email",
+          "parameters": {
+            "to": "{{ $json.record.email }}",
+            "subject": "Welcome to OFA Academy!",
+            "text": "Hi {{ $json.record.raw_user_meta_data.full_name || 'there' }},\n\nWelcome to Olufunke Football Academy! Your account is now active.\n\nLogin at: {{ $env.NEXT_PUBLIC_SITE_URL }}/login\n\nKind regards,\nThe OFA Team"
+          }
+        }
+      ],
+      "connections": {
+        "Supabase New User": {
+          "main": [[{ "node": "Welcome Email", "type": "main", "index": 0 }]]
+        }
+      }
+    },
+
+    {
+      "name": "OFA — Weekly Quiz Reminder",
+      "description": "Runs every Monday at 09:00 and notifies all players to take the weekly quiz.",
+      "nodes": [
+        {
+          "id": "1",
+          "type": "n8n-nodes-base.cron",
+          "name": "Every Monday 9am",
+          "parameters": {
+            "cronExpression": "0 9 * * 1"
+          }
+        },
+        {
+          "id": "2",
+          "type": "n8n-nodes-base.httpRequest",
+          "name": "Get All Players from Supabase",
+          "parameters": {
+            "method": "GET",
+            "url": "{{ $env.NEXT_PUBLIC_SUPABASE_URL }}/rest/v1/profiles?select=id,full_name&role=eq.player",
+            "headers": {
+              "apikey": "{{ $env.SUPABASE_SERVICE_ROLE_KEY }}",
+              "Authorization": "Bearer {{ $env.SUPABASE_SERVICE_ROLE_KEY }}"
+            }
+          }
+        },
+        {
+          "id": "3",
+          "type": "n8n-nodes-base.splitInBatches",
+          "name": "Loop over players",
+          "parameters": { "batchSize": 1 }
+        },
+        {
+          "id": "4",
+          "type": "n8n-nodes-base.httpRequest",
+          "name": "Trigger Netlify Email Function",
+          "parameters": {
+            "method": "POST",
+            "url": "{{ $env.NEXT_PUBLIC_SITE_URL }}/.netlify/functions/contact",
+            "body": {
+              "name": "OFA Academy",
+              "email": "{{ $json.email }}",
+              "subject": "Weekly Quiz is Live!",
+              "message": "Hi {{ $json.full_name }}, this week's quiz is now available. Login to take it: {{ $env.NEXT_PUBLIC_SITE_URL }}/quiz"
+            }
+          }
+        }
+      ],
+      "connections": {
+        "Every Monday 9am": {
+          "main": [[{ "node": "Get All Players from Supabase", "type": "main", "index": 0 }]]
+        },
+        "Get All Players from Supabase": {
+          "main": [[{ "node": "Loop over players", "type": "main", "index": 0 }]]
+        },
+        "Loop over players": {
+          "main": [[{ "node": "Trigger Netlify Email Function", "type": "main", "index": 0 }]]
+        }
+      }
+    }
+
+  ]
+}
