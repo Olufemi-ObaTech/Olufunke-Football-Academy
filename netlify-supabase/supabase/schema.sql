@@ -41,19 +41,40 @@ CREATE TRIGGER on_auth_user_created
 -- 2. PLAYERS
 -- ────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.players (
-  id           UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id      UUID REFERENCES auth.users(id) ON DELETE SET NULL,
-  full_name    TEXT NOT NULL,
+  id           BIGSERIAL PRIMARY KEY,
+  name         TEXT NOT NULL,
   position     TEXT NOT NULL,
   age          INT,
-  photo_url    TEXT,
-  approved     BOOLEAN DEFAULT FALSE,
+  goals        INT DEFAULT 0,
+  assists      INT DEFAULT 0,
+  matches      INT DEFAULT 0,
+  quote        TEXT,
+  image_path   TEXT DEFAULT 'images/Ofa new logo1.jpg',
   created_at   TIMESTAMPTZ DEFAULT NOW(),
   updated_at   TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- ────────────────────────────────────────────────────────────
--- 3. PLAYER RATINGS
+-- 3. STANDINGS — mirrors Laravel standings table
+-- ────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS public.standings (
+  id              BIGSERIAL PRIMARY KEY,
+  rank            INT NOT NULL,
+  club_name       TEXT NOT NULL,
+  played          INT DEFAULT 0,
+  won             INT DEFAULT 0,
+  drawn           INT DEFAULT 0,
+  lost            INT DEFAULT 0,
+  goals_for       INT DEFAULT 0,
+  goals_against   INT DEFAULT 0,
+  points          INT DEFAULT 0,
+  is_featured_club BOOLEAN DEFAULT FALSE,
+  created_at      TIMESTAMPTZ DEFAULT NOW(),
+  updated_at      TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ────────────────────────────────────────────────────────────
+-- 4. PLAYER RATINGS
 -- ────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.player_ratings (
   id           UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -152,28 +173,50 @@ CREATE TABLE IF NOT EXISTS public.contact_messages (
 -- 7. MATCH RESULTS & FIXTURES
 -- ────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.match_results (
-  id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  home_team       TEXT NOT NULL,
-  away_team       TEXT NOT NULL,
-  home_score      INT DEFAULT 0,
-  away_score      INT DEFAULT 0,
+  id              BIGSERIAL PRIMARY KEY,
   match_date      DATE NOT NULL,
+  opponent        TEXT NOT NULL,
   competition     TEXT,
-  created_at      TIMESTAMPTZ DEFAULT NOW()
+  result_badge    TEXT NOT NULL,
+  status_color    TEXT DEFAULT 'success',
+  week_label      TEXT,
+  venue           TEXT,
+  kick_off_time   TIME,
+  notes           TEXT,
+  created_at      TIMESTAMPTZ DEFAULT NOW(),
+  updated_at      TIMESTAMPTZ DEFAULT NOW()
 );
 
 CREATE TABLE IF NOT EXISTS public.next_fixtures (
-  id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id              BIGSERIAL PRIMARY KEY,
+  week_label      TEXT,
   home_team       TEXT NOT NULL,
   away_team       TEXT NOT NULL,
-  fixture_date    TIMESTAMPTZ NOT NULL,
-  venue           TEXT,
   competition     TEXT,
-  created_at      TIMESTAMPTZ DEFAULT NOW()
+  fixture_date    DATE NOT NULL,
+  kick_off_time   TIME,
+  venue           TEXT,
+  is_active       BOOLEAN DEFAULT TRUE,
+  created_at      TIMESTAMPTZ DEFAULT NOW(),
+  updated_at      TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- ────────────────────────────────────────────────────────────
--- 8. BOOKING PACKAGES
+-- 8. POSTS (News, Match Reports, Media) — mirrors Laravel posts table
+-- ────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS public.posts (
+  id          BIGSERIAL PRIMARY KEY,
+  title       TEXT NOT NULL,
+  content     TEXT NOT NULL,
+  image_path  TEXT,
+  type        TEXT NOT NULL CHECK (type IN ('latest','report','media')),
+  meta_link   TEXT,
+  created_at  TIMESTAMPTZ DEFAULT NOW(),
+  updated_at  TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ────────────────────────────────────────────────────────────
+-- 9. BOOKING PACKAGES
 -- ────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.booking_packages (
   id           UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
