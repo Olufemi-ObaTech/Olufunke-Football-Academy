@@ -26,16 +26,13 @@ jobs:
         run: npm install
         working-directory: netlify-supabase
 
-      # Build is handled by Netlify CLI via `netlify deploy --build`
-      # which invokes the netlify.toml build command AND runs
-      # @netlify/plugin-nextjs so SSR / server components work correctly.
       - name: Deploy to Netlify (production build)
         run: netlify deploy --build --prod
         working-directory: netlify-supabase
         env:
           NETLIFY_AUTH_TOKEN:            ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID:               ${{ secrets.NETLIFY_SITE_ID }}
-          NEXT_PUBLIC_SUPABASE_URL:      ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_URL:      https://fpqkewuoymyodveqbfjc.supabase.co
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           SUPABASE_SERVICE_ROLE_KEY:     ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          NEXT_PUBLIC_SITE_URL:          ${{ secrets.NEXT_PUBLIC_SITE_URL }}
+          NEXT_PUBLIC_SITE_URL:          https://olufunkefootballacademy.netlify.app
