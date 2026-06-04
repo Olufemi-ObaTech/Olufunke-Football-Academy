@@ -17,10 +17,13 @@ export default function NavBar({ active }) {
   };
 
   const nav = [
-    { href: '/',        label: 'Home',              key: 'home'    },
-    { href: '/about',   label: 'About Us',          key: 'about'   },
-    { href: '/quiz',    label: '🧠 Football IQ Quiz', key: 'quiz'  },
-    { href: '/contact', label: 'Contact Us',        key: 'contact' },
+    { href: '/',                   label: 'Home',                key: 'home'      },
+    { href: '/about',              label: 'About Us',            key: 'about'     },
+    { href: '/program',            label: 'Our Program',         key: 'program'   },
+    { href: '/football-education', label: '🎓 Education',        key: 'education' },
+    { href: '/quiz',               label: '🧠 IQ Quiz',          key: 'quiz'      },
+    { href: '/store',              label: 'Store',               key: 'store'     },
+    { href: '/contact',            label: 'Contact Us',          key: 'contact'   },
   ];
 
   return (
@@ -84,7 +87,7 @@ export default function NavBar({ active }) {
                   </Link>
                 </li>
                 <li className="nav-item ms-lg-1">
-                  <Link className="btn btn-warning btn-sm fw-bold px-3 py-2" href="/login">
+                  <Link className="btn btn-warning btn-sm fw-bold px-3 py-2" href="/register">
                     <i className="bi bi-person-plus-fill me-1"></i>Register
                   </Link>
                 </li>

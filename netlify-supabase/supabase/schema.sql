@@ -271,3 +271,117 @@ CREATE INDEX IF NOT EXISTS idx_lessons_course_id     ON public.lessons(course_id
 CREATE INDEX IF NOT EXISTS idx_lesson_progress_user  ON public.lesson_progress(user_id);
 CREATE INDEX IF NOT EXISTS idx_quiz_attempts_user    ON public.quiz_attempts(user_id);
 CREATE INDEX IF NOT EXISTS idx_contact_messages_read ON public.contact_messages(is_read);
+
+-- ────────────────────────────────────────────────────────────
+-- 11. COURSES & LESSONS (full structure matching Laravel)
+-- ────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS public.courses (
+  id               BIGSERIAL PRIMARY KEY,
+  title            TEXT NOT NULL,
+  description      TEXT,
+  image_path       TEXT,
+  category         TEXT DEFAULT 'technical',
+  target_audience  TEXT DEFAULT 'both',
+  cta_label        TEXT DEFAULT 'Start Learning',
+  is_published     BOOLEAN DEFAULT TRUE,
+  created_at       TIMESTAMPTZ DEFAULT NOW(),
+  updated_at       TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.lessons (
+  id               BIGSERIAL PRIMARY KEY,
+  course_id        BIGINT NOT NULL REFERENCES public.courses(id) ON DELETE CASCADE,
+  title            TEXT NOT NULL,
+  content          TEXT,
+  icon             TEXT DEFAULT 'bi-book',
+  duration         TEXT DEFAULT '10 min',
+  difficulty       TEXT DEFAULT 'beginner',
+  target_audience  TEXT DEFAULT 'both',
+  video_url        TEXT,
+  order_index      INT DEFAULT 0,
+  created_at       TIMESTAMPTZ DEFAULT NOW(),
+  updated_at       TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.player_progress (
+  id               BIGSERIAL PRIMARY KEY,
+  user_id          UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  course_id        BIGINT NOT NULL REFERENCES public.courses(id) ON DELETE CASCADE,
+  status           TEXT DEFAULT 'started' CHECK (status IN ('started','in_progress','completed')),
+  progress_percent INT DEFAULT 0,
+  started_at       TIMESTAMPTZ DEFAULT NOW(),
+  completed_at     TIMESTAMPTZ,
+  UNIQUE (user_id, course_id)
+);
+
+-- ────────────────────────────────────────────────────────────
+-- 12. QUIZ TABLES (full structure matching Laravel)
+-- ────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS public.quiz_weeks (
+  id           BIGSERIAL PRIMARY KEY,
+  title        TEXT NOT NULL,
+  description  TEXT,
+  theme        TEXT,
+  week_start   DATE,
+  week_end     DATE,
+  time_limit   INT DEFAULT 600,
+  is_active    BOOLEAN DEFAULT TRUE,
+  week_number  INT,
+  created_at   TIMESTAMPTZ DEFAULT NOW(),
+  updated_at   TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.quiz_questions (
+  id            BIGSERIAL PRIMARY KEY,
+  quiz_week_id  BIGINT NOT NULL REFERENCES public.quiz_weeks(id) ON DELETE CASCADE,
+  question      TEXT NOT NULL,
+  difficulty    TEXT DEFAULT 'medium' CHECK (difficulty IN ('easy','medium','hard')),
+  category      TEXT DEFAULT 'general',
+  explanation   TEXT,
+  "order"       INT DEFAULT 0,
+  created_at    TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.quiz_options (
+  id                BIGSERIAL PRIMARY KEY,
+  quiz_question_id  BIGINT NOT NULL REFERENCES public.quiz_questions(id) ON DELETE CASCADE,
+  option_text       TEXT NOT NULL,
+  is_correct        BOOLEAN DEFAULT FALSE,
+  "order"           INT DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS public.quiz_attempts (
+  id               BIGSERIAL PRIMARY KEY,
+  quiz_week_id     BIGINT NOT NULL REFERENCES public.quiz_weeks(id),
+  user_id          UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+  guest_name       TEXT,
+  score            INT DEFAULT 0,
+  total_questions  INT DEFAULT 0,
+  time_taken       INT,
+  answers          JSONB,
+  ip_address       TEXT,
+  created_at       TIMESTAMPTZ DEFAULT NOW(),
+  updated_at       TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ────────────────────────────────────────────────────────────
+-- 13. PRODUCTS (Store merchandise)
+-- ────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS public.products (
+  id          BIGSERIAL PRIMARY KEY,
+  name        TEXT NOT NULL,
+  description TEXT,
+  price       DECIMAL(10,2) NOT NULL DEFAULT 0,
+  image_path  TEXT,
+  category    TEXT DEFAULT 'merchandise',
+  available   BOOLEAN DEFAULT TRUE,
+  created_at  TIMESTAMPTZ DEFAULT NOW(),
+  updated_at  TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "products_read_all"  ON public.products FOR SELECT USING (TRUE);
+CREATE POLICY "products_admin"     ON public.products FOR ALL    USING (public.is_admin());
+
+-- Add group_size to booking_packages (matches Laravel model)
+ALTER TABLE public.booking_packages ADD COLUMN IF NOT EXISTS group_size TEXT;

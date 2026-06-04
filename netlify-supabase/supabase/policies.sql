@@ -162,3 +162,30 @@ CREATE POLICY "team_mutate_admin" ON public.management_team FOR ALL    USING (pu
 ALTER TABLE public.standings ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "standings_select_all"   ON public.standings FOR SELECT USING (TRUE);
 CREATE POLICY "standings_mutate_admin" ON public.standings FOR ALL    USING (public.is_admin());
+
+-- ── Courses / Lessons ────────────────────────────────────────
+ALTER TABLE public.courses         ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.lessons         ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.player_progress ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "courses_read_all"      ON public.courses         FOR SELECT USING (TRUE);
+CREATE POLICY "courses_admin"         ON public.courses         FOR ALL    USING (public.is_admin());
+CREATE POLICY "lessons_read_all"      ON public.lessons         FOR SELECT USING (TRUE);
+CREATE POLICY "lessons_admin"         ON public.lessons         FOR ALL    USING (public.is_admin());
+CREATE POLICY "progress_own"          ON public.player_progress FOR SELECT USING (user_id = auth.uid() OR public.is_admin());
+CREATE POLICY "progress_insert_own"   ON public.player_progress FOR INSERT WITH CHECK (user_id = auth.uid());
+CREATE POLICY "progress_update_own"   ON public.player_progress FOR UPDATE USING (user_id = auth.uid());
+
+-- ── Quiz tables ──────────────────────────────────────────────
+ALTER TABLE public.quiz_weeks    ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.quiz_questions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.quiz_options   ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.quiz_attempts  ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "qw_read_all"   ON public.quiz_weeks     FOR SELECT USING (TRUE);
+CREATE POLICY "qw_admin"      ON public.quiz_weeks     FOR ALL    USING (public.is_admin());
+CREATE POLICY "qq_read_all"   ON public.quiz_questions  FOR SELECT USING (TRUE);
+CREATE POLICY "qq_admin"      ON public.quiz_questions  FOR ALL    USING (public.is_admin());
+CREATE POLICY "qo_read_all"   ON public.quiz_options    FOR SELECT USING (TRUE);
+CREATE POLICY "qo_admin"      ON public.quiz_options    FOR ALL    USING (public.is_admin());
+CREATE POLICY "qa_read_all"   ON public.quiz_attempts   FOR SELECT USING (TRUE);
+CREATE POLICY "qa_insert_all" ON public.quiz_attempts   FOR INSERT WITH CHECK (TRUE);
+CREATE POLICY "qa_admin"      ON public.quiz_attempts   FOR ALL    USING (public.is_admin());
