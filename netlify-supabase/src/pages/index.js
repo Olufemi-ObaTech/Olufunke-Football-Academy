@@ -7,6 +7,9 @@ import { useEffect, useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { supabase } from '../lib/supabaseClient';
+import NavBar from '../components/NavBar';
+import Footer from '../components/Footer';
+import QuizCTA from '../components/QuizCTA';
 
 export default function Home() {
   const [latestNews,      setLatestNews]      = useState([]);
@@ -77,27 +80,7 @@ export default function Home() {
       </Head>
 
       {/* ── NAVBAR ── */}
-      <nav className="navbar navbar-expand-lg navbar-dark bg-dark py-3 sticky-top shadow">
-        <div className="container">
-          <Link className="navbar-brand fw-bold d-flex align-items-center gap-2" href="/">
-            <img src={LOGO} alt="OFA Logo" width="48" height="48" className="rounded-circle border border-warning border-2" style={{objectFit:'cover'}} />
-            <span className="text-warning">OLUFUNKE FOOTBALL ACADEMY</span>
-          </Link>
-          <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain">
-            <span className="navbar-toggler-icon"></span>
-          </button>
-          <div className="collapse navbar-collapse" id="navMain">
-            <ul className="navbar-nav ms-auto align-items-lg-center">
-              <li className="nav-item"><Link className="nav-link active" href="/">Home</Link></li>
-              <li className="nav-item"><Link className="nav-link" href="/about">About Us</Link></li>
-              <li className="nav-item"><Link className="nav-link" href="/quiz">🧠 Football IQ Quiz</Link></li>
-              <li className="nav-item"><Link className="nav-link" href="/contact">Contact Us</Link></li>
-              <li className="nav-item ms-lg-2"><Link className="nav-link" href="/login"><i className="bi bi-box-arrow-in-right me-1"></i>Login</Link></li>
-              <li className="nav-item ms-lg-1"><Link className="btn btn-warning btn-sm fw-bold px-3 py-2" href="/login"><i className="bi bi-person-plus-fill me-1"></i>Register</Link></li>
-            </ul>
-          </div>
-        </div>
-      </nav>
+      <NavBar active="home" />
 
       {/* ── HERO ── */}
       <section className="hero-section" id="top">
