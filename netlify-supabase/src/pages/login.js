@@ -12,9 +12,12 @@ export default function Login() {
   const [message, setMessage] = useState('');
   const [error,   setError]   = useState('');
 
-  // Already logged in → go to dashboard
+  // Already logged in → go to dashboard or redirect target
   useEffect(() => {
-    if (session) router.replace('/dashboard');
+    if (session) {
+      const redirect = router.query.redirect || '/dashboard';
+      router.replace(redirect);
+    }
   }, [session, router]);
 
   // Show error from URL query (e.g. ?error=auth_failed)

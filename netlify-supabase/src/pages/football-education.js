@@ -1,19 +1,44 @@
 import { useEffect, useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import NavBar from '../components/NavBar';
 import Footer from '../components/Footer';
 import { supabase } from '../lib/supabaseClient';
-import { useSession } from '@supabase/auth-helpers-react';
+import { useSession, useSupabaseClient } from '@supabase/auth-helpers-react';
 
 export default function FootballEducation() {
-  const session = useSession();
+  const session    = useSession();
+  const supabaseCl = useSupabaseClient();
+  const router     = useRouter();
   const [courses,   setCourses]   = useState([]);
   const [progress,  setProgress]  = useState({});
   const [filter,    setFilter]    = useState('all');
   const [loading,   setLoading]   = useState(true);
+  const [access,    setAccess]    = useState(null); // null=checking, true=allowed, false=denied
+
+  // ── Security guard: only approved players + admins ───────────
+  useEffect(() => {
+    if (session === null) {
+      // Not logged in → redirect to login
+      router.replace('/login?redirect=/football-education');
+      return;
+    }
+    if (!session) return; // still loading session
+
+    async function checkAccess() {
+      const { data: prof } = await supabaseCl
+        .from('profiles').select('role, status').eq('id', session.user.id).single();
+
+      if (!prof) { setAccess(false); return; }
+      const allowed = prof.role === 'admin' || (prof.role === 'player' && prof.status === 'approved');
+      setAccess(allowed);
+    }
+    checkAccess();
+  }, [session]);
 
   useEffect(() => {
+    if (access !== true) return; // don't load until access confirmed
     async function load() {
       const { data: c } = await supabase
         .from('courses')
@@ -33,7 +58,7 @@ export default function FootballEducation() {
       setLoading(false);
     }
     load();
-  }, [session]);
+  }, [session, access]);
 
   const filtered = courses.filter(c => {
     if (filter === 'all') return true;
@@ -50,10 +75,53 @@ export default function FootballEducation() {
     { key:'both',   label:'👥 Both',     cls:'btn-outline-info'    },
   ];
 
+  // ── Access denied ─────────────────────────────────────────────
+  if (access === false) {
+    return (
+      <>
+        <Head><title>OFA | Access Restricted</title></Head>
+        <NavBar active="education" />
+        <section className="py-5 text-white text-center" style={{background:'linear-gradient(135deg,#10316B 60%,#4CAF50 100%)',minHeight:'60vh',display:'flex',alignItems:'center'}}>
+          <div className="container">
+            <div style={{fontSize:'4rem',marginBottom:16}}>🔒</div>
+            <h1 className="fw-bold display-5 mb-3">Members Only</h1>
+            <p className="lead opacity-75 mb-4">
+              The Football Education platform is exclusively available to <strong>registered and approved OFA players</strong>.
+            </p>
+            <div className="d-flex justify-content-center gap-3 flex-wrap">
+              <Link href="/register" className="btn btn-warning btn-lg fw-bold px-5">
+                <i className="bi bi-person-plus-fill me-2"></i>Register as a Player
+              </Link>
+              <Link href="/contact" className="btn btn-outline-light btn-lg px-5">
+                <i className="bi bi-telephone-fill me-2"></i>Contact Us
+              </Link>
+            </div>
+            <p className="opacity-50 small mt-4">Already registered? Your account is pending coach approval.</p>
+          </div>
+        </section>
+        <Footer />
+      </>
+    );
+  }
+
+  if (access === null || (access === true && loading)) {
+    return (
+      <>
+        <NavBar active="education" />
+        <div style={{display:'flex',alignItems:'center',justifyContent:'center',minHeight:'60vh'}}>
+          <div style={{textAlign:'center'}}>
+            <div className="spinner-border text-primary mb-3"></div>
+            <p className="text-muted">Loading Football Education…</p>
+          </div>
+        </div>
+        <Footer />
+      </>
+    );
+  }
+
   return (
     <>
-      <Head><title>OFA | Football Education</title></Head>
-      <NavBar active="education" />
+      <Head><title>OFA | Football Education</title></Head>      <NavBar active="education" />
 
       {/* Hero */}
       <section className="py-5 text-white text-center" style={{ background:'linear-gradient(135deg,#10316B 60%,#4CAF50 100%)' }}>

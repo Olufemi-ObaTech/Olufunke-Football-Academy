@@ -1,11 +1,12 @@
 -- ============================================================
--- OFA Academy — Supabase Schema  (clean, no duplicates)
--- Run in: Supabase → SQL Editor → New query → Run
+-- OFA Academy — Supabase Schema  v3  (clean, all errors fixed)
+-- Run in: Supabase Dashboard → SQL Editor → New query → Run
 -- ============================================================
 
+-- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- ── 1. PROFILES (extends auth.users) ────────────────────────
+-- ── 1. PROFILES (extends auth.users) ─────────────────────────
 CREATE TABLE IF NOT EXISTS public.profiles (
   id          UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   full_name   TEXT,
@@ -21,11 +22,13 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   updated_at  TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Auto-create profile on sign-up
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO public.profiles (id, full_name, avatar_url, phone, position, age, age_group, nationality)
-  VALUES (
+  INSERT INTO public.profiles (
+    id, full_name, avatar_url, phone, position, age, age_group, nationality
+  ) VALUES (
     NEW.id,
     NEW.raw_user_meta_data->>'full_name',
     NEW.raw_user_meta_data->>'avatar_url',
@@ -45,7 +48,7 @@ CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
--- ── 2. PLAYERS (spotlight) ───────────────────────────────────
+-- ── 2. PLAYERS (spotlight — BIGINT primary key) ───────────────
 CREATE TABLE IF NOT EXISTS public.players (
   id          BIGSERIAL PRIMARY KEY,
   name        TEXT NOT NULL,
@@ -60,7 +63,7 @@ CREATE TABLE IF NOT EXISTS public.players (
   updated_at  TIMESTAMPTZ DEFAULT NOW()
 );
 
--- ── 3. POSTS (news / reports / media) ───────────────────────
+-- ── 3. POSTS (news / reports / media) ────────────────────────
 CREATE TABLE IF NOT EXISTS public.posts (
   id          BIGSERIAL PRIMARY KEY,
   title       TEXT NOT NULL,
@@ -72,23 +75,23 @@ CREATE TABLE IF NOT EXISTS public.posts (
   updated_at  TIMESTAMPTZ DEFAULT NOW()
 );
 
--- ── 4. MATCH RESULTS ─────────────────────────────────────────
+-- ── 4. MATCH RESULTS ──────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.match_results (
-  id           BIGSERIAL PRIMARY KEY,
-  match_date   DATE NOT NULL,
-  opponent     TEXT NOT NULL,
-  competition  TEXT,
-  result_badge TEXT NOT NULL,
-  status_color TEXT DEFAULT 'success',
-  week_label   TEXT,
-  venue        TEXT,
+  id            BIGSERIAL PRIMARY KEY,
+  match_date    DATE NOT NULL,
+  opponent      TEXT NOT NULL,
+  competition   TEXT,
+  result_badge  TEXT NOT NULL,
+  status_color  TEXT DEFAULT 'success',
+  week_label    TEXT,
+  venue         TEXT,
   kick_off_time TIME,
-  notes        TEXT,
-  created_at   TIMESTAMPTZ DEFAULT NOW(),
-  updated_at   TIMESTAMPTZ DEFAULT NOW()
+  notes         TEXT,
+  created_at    TIMESTAMPTZ DEFAULT NOW(),
+  updated_at    TIMESTAMPTZ DEFAULT NOW()
 );
 
--- ── 5. NEXT FIXTURES ─────────────────────────────────────────
+-- ── 5. NEXT FIXTURES ──────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.next_fixtures (
   id            BIGSERIAL PRIMARY KEY,
   week_label    TEXT,
@@ -103,7 +106,7 @@ CREATE TABLE IF NOT EXISTS public.next_fixtures (
   updated_at    TIMESTAMPTZ DEFAULT NOW()
 );
 
--- ── 6. STANDINGS ─────────────────────────────────────────────
+-- ── 6. STANDINGS ──────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.standings (
   id               BIGSERIAL PRIMARY KEY,
   rank             INT NOT NULL,
@@ -120,7 +123,7 @@ CREATE TABLE IF NOT EXISTS public.standings (
   updated_at       TIMESTAMPTZ DEFAULT NOW()
 );
 
--- ── 7. MANAGEMENT TEAM ───────────────────────────────────────
+-- ── 7. MANAGEMENT TEAM ────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.management_team (
   id         BIGSERIAL PRIMARY KEY,
   name       TEXT NOT NULL,
@@ -131,7 +134,7 @@ CREATE TABLE IF NOT EXISTS public.management_team (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- ── 8. PRODUCTS ──────────────────────────────────────────────
+-- ── 8. PRODUCTS ───────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.products (
   id          BIGSERIAL PRIMARY KEY,
   name        TEXT NOT NULL,
@@ -144,7 +147,7 @@ CREATE TABLE IF NOT EXISTS public.products (
   updated_at  TIMESTAMPTZ DEFAULT NOW()
 );
 
--- ── 9. BOOKING PACKAGES ──────────────────────────────────────
+-- ── 9. BOOKING PACKAGES ───────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.booking_packages (
   id          BIGSERIAL PRIMARY KEY,
   name        TEXT NOT NULL,
@@ -157,7 +160,7 @@ CREATE TABLE IF NOT EXISTS public.booking_packages (
   updated_at  TIMESTAMPTZ DEFAULT NOW()
 );
 
--- ── 10. COURSES ───────────────────────────────────────────────
+-- ── 10. COURSES (BIGINT primary key) ──────────────────────────
 CREATE TABLE IF NOT EXISTS public.courses (
   id              BIGSERIAL PRIMARY KEY,
   title           TEXT NOT NULL,
@@ -171,7 +174,7 @@ CREATE TABLE IF NOT EXISTS public.courses (
   updated_at      TIMESTAMPTZ DEFAULT NOW()
 );
 
--- ── 11. LESSONS ───────────────────────────────────────────────
+-- ── 11. LESSONS (BIGINT FK → courses.id) ─────────────────────
 CREATE TABLE IF NOT EXISTS public.lessons (
   id              BIGSERIAL PRIMARY KEY,
   course_id       BIGINT NOT NULL REFERENCES public.courses(id) ON DELETE CASCADE,
@@ -187,7 +190,7 @@ CREATE TABLE IF NOT EXISTS public.lessons (
   updated_at      TIMESTAMPTZ DEFAULT NOW()
 );
 
--- ── 12. PLAYER PROGRESS ──────────────────────────────────────
+-- ── 12. PLAYER PROGRESS (BIGINT FK → courses.id) ─────────────
 CREATE TABLE IF NOT EXISTS public.player_progress (
   id               BIGSERIAL PRIMARY KEY,
   user_id          UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -199,7 +202,7 @@ CREATE TABLE IF NOT EXISTS public.player_progress (
   UNIQUE (user_id, course_id)
 );
 
--- ── 13. LESSON PROGRESS ──────────────────────────────────────
+-- ── 13. LESSON PROGRESS (BIGINT FK → lessons.id) ─────────────
 CREATE TABLE IF NOT EXISTS public.lesson_progress (
   id           BIGSERIAL PRIMARY KEY,
   user_id      UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -236,7 +239,7 @@ CREATE TABLE IF NOT EXISTS public.quiz_questions (
   created_at   TIMESTAMPTZ DEFAULT NOW()
 );
 
--- ── 16. QUIZ OPTIONS ─────────────────────────────────────────
+-- ── 16. QUIZ OPTIONS ──────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.quiz_options (
   id               BIGSERIAL PRIMARY KEY,
   quiz_question_id BIGINT NOT NULL REFERENCES public.quiz_questions(id) ON DELETE CASCADE,
@@ -245,7 +248,7 @@ CREATE TABLE IF NOT EXISTS public.quiz_options (
   "order"          INT DEFAULT 0
 );
 
--- ── 17. QUIZ ATTEMPTS ────────────────────────────────────────
+-- ── 17. QUIZ ATTEMPTS ─────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.quiz_attempts (
   id              BIGSERIAL PRIMARY KEY,
   quiz_week_id    BIGINT NOT NULL REFERENCES public.quiz_weeks(id),
@@ -260,7 +263,7 @@ CREATE TABLE IF NOT EXISTS public.quiz_attempts (
   updated_at      TIMESTAMPTZ DEFAULT NOW()
 );
 
--- ── 18. CONTACT MESSAGES ─────────────────────────────────────
+-- ── 18. CONTACT MESSAGES ──────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.contact_messages (
   id         BIGSERIAL PRIMARY KEY,
   name       TEXT NOT NULL,
@@ -272,13 +275,15 @@ CREATE TABLE IF NOT EXISTS public.contact_messages (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- ── Indexes ───────────────────────────────────────────────────
-CREATE INDEX IF NOT EXISTS idx_posts_type           ON public.posts(type);
-CREATE INDEX IF NOT EXISTS idx_match_results_date   ON public.match_results(match_date);
-CREATE INDEX IF NOT EXISTS idx_standings_rank       ON public.standings(rank);
-CREATE INDEX IF NOT EXISTS idx_lessons_course       ON public.lessons(course_id);
-CREATE INDEX IF NOT EXISTS idx_player_progress_user ON public.player_progress(user_id);
-CREATE INDEX IF NOT EXISTS idx_lesson_progress_user ON public.lesson_progress(user_id);
-CREATE INDEX IF NOT EXISTS idx_quiz_attempts_user   ON public.quiz_attempts(user_id);
-CREATE INDEX IF NOT EXISTS idx_quiz_attempts_week   ON public.quiz_attempts(quiz_week_id);
-CREATE INDEX IF NOT EXISTS idx_contact_read         ON public.contact_messages(is_read);
+-- ── Performance indexes ────────────────────────────────────────
+CREATE INDEX IF NOT EXISTS idx_posts_type              ON public.posts(type);
+CREATE INDEX IF NOT EXISTS idx_match_results_date      ON public.match_results(match_date);
+CREATE INDEX IF NOT EXISTS idx_standings_rank          ON public.standings(rank);
+CREATE INDEX IF NOT EXISTS idx_lessons_course          ON public.lessons(course_id);
+CREATE INDEX IF NOT EXISTS idx_player_progress_user    ON public.player_progress(user_id);
+CREATE INDEX IF NOT EXISTS idx_lesson_progress_user    ON public.lesson_progress(user_id);
+CREATE INDEX IF NOT EXISTS idx_quiz_attempts_user      ON public.quiz_attempts(user_id);
+CREATE INDEX IF NOT EXISTS idx_quiz_attempts_week      ON public.quiz_attempts(quiz_week_id);
+CREATE INDEX IF NOT EXISTS idx_contact_read            ON public.contact_messages(is_read);
+CREATE INDEX IF NOT EXISTS idx_profiles_role           ON public.profiles(role);
+CREATE INDEX IF NOT EXISTS idx_profiles_status         ON public.profiles(status);

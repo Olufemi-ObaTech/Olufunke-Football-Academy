@@ -1,10 +1,45 @@
 import Head from 'next/head';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
 import NavBar from '../components/NavBar';
 import Footer from '../components/Footer';
 import QuizCTA from '../components/QuizCTA';
+import { useSession, useSupabaseClient } from '@supabase/auth-helpers-react';
 
 export default function Program() {
+  const session    = useSession();
+  const supabaseCl = useSupabaseClient();
+  const router     = useRouter();
+  const [access, setAccess] = useState(null);
+
+  useEffect(() => {
+    if (session === null) { router.replace('/login?redirect=/program'); return; }
+    if (!session) return;
+    supabaseCl.from('profiles').select('role,status').eq('id', session.user.id).single()
+      .then(({ data }) => {
+        setAccess(data && (data.role === 'admin' || (data.role === 'player' && data.status === 'approved')));
+      });
+  }, [session]);
+
+  if (access === null) return <><NavBar /><div style={{display:'flex',alignItems:'center',justifyContent:'center',minHeight:'60vh'}}><div className="spinner-border text-primary"></div></div><Footer /></>;
+
+  if (access === false) return (
+    <>
+      <Head><title>OFA | Members Only</title></Head>
+      <NavBar />
+      <section className="py-5 text-white text-center" style={{background:'linear-gradient(135deg,#10316B 60%,#4CAF50 100%)',minHeight:'60vh',display:'flex',alignItems:'center'}}>
+        <div className="container">
+          <div style={{fontSize:'4rem'}}>🔒</div>
+          <h1 className="fw-bold mt-3 mb-3">Members Only</h1>
+          <p className="lead opacity-75 mb-4">Our Program is exclusively available to approved OFA players.</p>
+          <Link href="/register" className="btn btn-warning btn-lg fw-bold px-5 me-3"><i className="bi bi-person-plus-fill me-2"></i>Register</Link>
+          <Link href="/contact" className="btn btn-outline-light btn-lg px-5"><i className="bi bi-telephone-fill me-2"></i>Contact Us</Link>
+        </div>
+      </section>
+      <Footer />
+    </>
+  );
   const achievements = [
     { icon:'🏆', label:'Lagos State U17 Champions' },
     { icon:'⚽', label:'Lagos State League Finalists' },
