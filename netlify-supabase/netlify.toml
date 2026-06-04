@@ -1,49 +1,38 @@
 # ============================================================
-# netlify.toml — MUST live at the root of the base directory
-# Netlify reads this from: netlify-supabase/netlify.toml
-# Set "Base directory" = netlify-supabase in Netlify UI
-#
-# Required env vars in Netlify UI → Site Settings → Environment Variables:
-#   NEXT_PUBLIC_SUPABASE_URL
-#   NEXT_PUBLIC_SUPABASE_ANON_KEY
-#   SUPABASE_SERVICE_ROLE_KEY
-#   NEXT_PUBLIC_SITE_URL   (e.g. https://olufunkefootballacademy.netlify.app)
+# netlify.toml
+# Place:  netlify-supabase/netlify.toml
+# In Netlify UI → Deploy settings set:
+#   Base directory  : netlify-supabase
+#   Build command   : npm install && npm run build
+#   Publish dir     : netlify-supabase/.next
 # ============================================================
 
 [build]
-  command = "npm run build"
+  base    = "netlify-supabase"
+  command = "npm install && npm run build"
   publish = ".next"
 
-# Netlify Next.js plugin — handles SSR, API routes, and image optimisation
+[build.environment]
+  NODE_VERSION = "20"
+
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
-# Serverless functions (in addition to Next.js API routes)
 [functions]
-  directory = "netlify/functions"
-  node_bundler = "esbuild"
-  included_files = ["netlify/functions/**"]
+  directory      = "netlify/functions"
+  node_bundler   = "esbuild"
 
-# Local development: netlify dev
-[dev]
-  command   = "npm run dev"
-  port      = 3000
-  targetPort = 3000
-
-# ---- Redirects -----------------------------------------------
-# Auth callback — handled by Netlify function
+# ── Auth callback ──────────────────────────────────────────────
 [[redirects]]
   from   = "/auth/callback"
   to     = "/.netlify/functions/auth-handler"
   status = 200
   force  = true
 
-# ---- Security Headers ----------------------------------------
+# ── Security headers ───────────────────────────────────────────
 [[headers]]
   for = "/*"
   [headers.values]
-    X-Frame-Options         = "DENY"
-    X-Content-Type-Options  = "nosniff"
-    Referrer-Policy         = "strict-origin-when-cross-origin"
-    Permissions-Policy      = "camera=(), microphone=(), geolocation=()"
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://*.supabase.co https://cdn.jsdelivr.net; connect-src 'self' https://*.supabase.co wss://*.supabase.co;"
+    X-Frame-Options        = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy        = "strict-origin-when-cross-origin"

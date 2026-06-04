@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Do NOT use 'export' — Netlify needs SSR mode for functions + auth
-  // @netlify/plugin-nextjs handles the deployment automatically
+  // Netlify plugin handles deployment — do NOT use output:'export'
+  reactStrictMode: true,
 
   images: {
     remotePatterns: [
@@ -11,6 +11,13 @@ const nextConfig = {
         pathname: '/storage/v1/object/public/**',
       },
     ],
+  },
+
+  // Make env vars available at build time
+  env: {
+    NEXT_PUBLIC_SUPABASE_URL:      process.env.NEXT_PUBLIC_SUPABASE_URL,
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    NEXT_PUBLIC_SITE_URL:          process.env.NEXT_PUBLIC_SITE_URL,
   },
 };
 
