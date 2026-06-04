@@ -77,6 +77,17 @@ exports.handler = async (event) => {
     const user = await getAuthUser(event);
     if (!user) return jsonResponse(401, { error: 'Unauthorized' });
 
+    // Verify the user is an admin via profiles table
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+
+    if (!profile || profile.role !== 'admin') {
+      return jsonResponse(403, { error: 'Forbidden — admin access required' });
+    }
+
     // ── POST — Create player ─────────────────────────────────────
     if (method === 'POST') {
       const body = JSON.parse(event.body || '{}');

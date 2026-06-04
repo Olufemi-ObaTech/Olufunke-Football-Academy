@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS public.players (
   full_name    TEXT NOT NULL,
   position     TEXT NOT NULL,
   age          INT,
-  photo_url    TEXT DEFAULT 'images/Ofa new logo1.jpg',
+  photo_url    TEXT DEFAULT '/images/OFA New Logo.jpg',
   goals        INT DEFAULT 0,
   assists      INT DEFAULT 0,
   matches      INT DEFAULT 0,
@@ -170,6 +170,11 @@ CREATE TABLE IF NOT EXISTS public.quiz_attempts (
   completed_at     TIMESTAMPTZ DEFAULT NOW(),
   UNIQUE (user_id, quiz_week_id)
 );
+
+-- FK from quiz_attempts to profiles so PostgREST can resolve profiles(full_name) join
+ALTER TABLE public.quiz_attempts
+  ADD CONSTRAINT fk_quiz_attempts_profile
+  FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
 
 -- ────────────────────────────────────────────────────────────
 -- 6. CONTACT MESSAGES

@@ -2,58 +2,47 @@
  * Netlify Function: auth-handler.js
  * Handles Supabase OAuth callbacks and magic-link redirects.
  * Triggered via /auth/callback redirect in netlify.toml.
+ *
+ * Strategy: redirect the browser back to a Next.js page (/auth/confirm)
+ * that uses the Supabase JS client to exchange the code client-side.
+ * This is the correct PKCE flow — server-side session exchange doesn't
+ * work here because the session tokens can't be set in the browser cookies.
  */
 
-const { createClient } = require('@supabase/supabase-js');
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL;
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://olufunkefootballacademy.netlify.app';
 
 exports.handler = async (event) => {
-  const { code, error, error_description } = event.queryStringParameters || {};
+  const params = event.queryStringParameters || {};
+  const { code, error, error_description, token_hash, type } = params;
 
-  // ── OAuth error from Supabase ──────────────────────────────────
+  // ── OAuth/magic-link error from Supabase ─────────────────────
   if (error) {
-    console.error('[auth-handler] OAuth error:', error_description);
-    return {
-      statusCode: 302,
-      headers: {
-        Location: `${SITE_URL}/login?error=${encodeURIComponent(error_description || error)}`,
-      },
-      body: '',
-    };
+    console.error('[auth-handler] Auth error:', error_description || error);
+    const msg = encodeURIComponent(error_description || error);
+    return redirect(`${SITE_URL}/login?error=${msg}`);
   }
 
-  // ── Exchange code for session ──────────────────────────────────
+  // ── PKCE code flow (OAuth + magic link) ──────────────────────
+  // Pass code through to the client-side page which does the exchange.
   if (code) {
-    try {
-      const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
-      if (exchangeError) throw exchangeError;
-
-      console.log('[auth-handler] Session created:', data.user?.email);
-
-      return {
-        statusCode: 302,
-        headers: { Location: `${SITE_URL}/dashboard` },
-        body: '',
-      };
-    } catch (err) {
-      console.error('[auth-handler] Exchange error:', err.message);
-      return {
-        statusCode: 302,
-        headers: { Location: `${SITE_URL}/login?error=auth_failed` },
-        body: '',
-      };
-    }
+    const dest = `${SITE_URL}/auth/confirm?code=${encodeURIComponent(code)}`;
+    return redirect(dest);
   }
 
+  // ── Email OTP token_hash flow (email confirmations) ──────────
+  if (token_hash && type) {
+    const dest = `${SITE_URL}/auth/confirm?token_hash=${encodeURIComponent(token_hash)}&type=${encodeURIComponent(type)}`;
+    return redirect(dest);
+  }
+
+  // ── Fallback ─────────────────────────────────────────────────
+  return redirect(`${SITE_URL}/login`);
+};
+
+function redirect(location) {
   return {
     statusCode: 302,
-    headers: { Location: `${SITE_URL}/login` },
+    headers: { Location: location },
     body: '',
   };
-};
+}

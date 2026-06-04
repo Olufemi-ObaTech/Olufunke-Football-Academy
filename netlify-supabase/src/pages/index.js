@@ -61,9 +61,6 @@ export default function Home() {
     <>
       <Head>
         <title>Olufunke Football Academy | Official Website</title>
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" />
-        <link href="https://fonts.googleapis.com/css?family=Montserrat:700,400&display=swap" rel="stylesheet" />
         <style>{`
           body{font-family:'Montserrat',Arial,sans-serif;background:#f9f9f9;color:#222831;}
           .hero-section{background:linear-gradient(rgba(16,49,107,.8),rgba(16,49,107,.7)),url('/images/OFA 1.jpg') center/cover no-repeat;color:#fff;min-height:450px;display:flex;align-items:center;}
@@ -511,7 +508,6 @@ export default function Home() {
         </div>
       </footer>
 
-      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" async></script>
     </>
   );
 }
