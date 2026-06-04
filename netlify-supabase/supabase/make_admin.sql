@@ -1,32 +1,35 @@
 -- ============================================================
--- Make a user an Admin in Supabase
--- Run in: Supabase → SQL Editor
--- Replace the email below with your actual admin email
+-- OFA Academy — Make User an Admin
+-- Run in: Supabase Dashboard → SQL Editor → New query → Run
+-- ============================================================
+-- IMPORTANT: First register on the website at /register with
+-- the email: Olufunkefootballacademy@gmail.com
+-- Then come back here and run this SQL to grant admin access.
 -- ============================================================
 
--- Step 1: Find the user UUID from their email
-SELECT id, email FROM auth.users WHERE email = 'Olufunkefootballacademy@gmail.com';
+-- This single statement finds the user by email and sets admin role.
+-- It will succeed silently if the email does not exist yet.
 
--- Step 2: Set them as admin (replace UUID from step 1)
-UPDATE public.profiles
-SET role   = 'admin',
-    status = 'approved'
-WHERE id = (
-  SELECT id FROM auth.users
-  WHERE email = 'Olufunkefootballacademy@gmail.com'
-  LIMIT 1
-);
+INSERT INTO public.profiles (id, full_name, role, status)
+SELECT
+  u.id,
+  COALESCE(u.raw_user_meta_data->>'full_name', 'Admin'),
+  'admin',
+  'approved'
+FROM auth.users u
+WHERE u.email = 'Olufunkefootballacademy@gmail.com'
+ON CONFLICT (id) DO UPDATE
+  SET role   = 'admin',
+      status = 'approved',
+      updated_at = NOW();
 
--- Step 3: Verify
-SELECT p.id, u.email, p.role, p.status
+-- Verify: shows all admin users
+SELECT
+  u.email,
+  p.full_name,
+  p.role,
+  p.status,
+  p.created_at
 FROM public.profiles p
 JOIN auth.users u ON p.id = u.id
 WHERE p.role = 'admin';
-
--- ============================================================
--- To reset admin password via Supabase:
--- 1. Go to Supabase → Authentication → Users
--- 2. Find the email, click the 3-dot menu
--- 3. Click "Send password reset" to send a reset email
--- OR use the magic link to log in without a password
--- ============================================================
