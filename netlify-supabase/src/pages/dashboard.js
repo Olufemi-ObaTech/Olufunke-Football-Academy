@@ -95,7 +95,20 @@ export default function Dashboard() {
   const userEmail = session.user.email;
   const firstName = (profile?.full_name || userEmail || 'Player').split(' ')[0];
   const initial   = (profile?.full_name || userEmail || 'P').charAt(0).toUpperCase();
-  const isApproved = profile?.role === 'player' || profile?.role === 'admin';
+
+  // Stars display helper
+  const renderStars = (count) => {
+    const total = 5;
+    return '★'.repeat(Math.min(count||0, total)) + '☆'.repeat(Math.max(0, total - (count||0)));
+  };
+
+  const levelBadge = (lvl) => {
+    const labels = {1:'Rookie',2:'Beginner',3:'Developing',4:'Intermediate',5:'Advanced',6:'Expert',7:'Elite'};
+    const colors  = {1:'#94a3b8',2:'#64748b',3:'#3b82f6',4:'#8b5cf6',5:'#f59e0b',6:'#ef4444',7:'#10316B'};
+    return { label: labels[lvl] || 'Rookie', color: colors[lvl] || '#94a3b8' };
+  };
+
+  const { label: lvlLabel, color: lvlColor } = levelBadge(profile?.current_level || 1);
 
   return (
     <>
@@ -112,6 +125,14 @@ export default function Dashboard() {
               <div className="flex-grow-1" style={{position:'relative',zIndex:1}}>
                 <h2 className="fw-bold text-white mb-1" style={{fontSize:'1.4rem'}}>Welcome back, {firstName}! ⚽</h2>
                 <div className="d-flex flex-wrap gap-2 align-items-center">
+                  {/* Level badge */}
+                  <span style={{background:lvlColor,color:'#fff',borderRadius:20,padding:'3px 10px',fontSize:'.75rem',fontWeight:700}}>
+                    Level {profile?.current_level || 1} — {lvlLabel}
+                  </span>
+                  {/* Stars */}
+                  <span style={{background:'rgba(251,191,36,.2)',color:'#fde68a',borderRadius:20,padding:'3px 10px',fontSize:'.78rem',fontWeight:700}}>
+                    {renderStars(profile?.total_stars || 0)} ({profile?.total_stars || 0} stars)
+                  </span>
                   <span className="pl" style={{background:'rgba(255,255,255,.15)',color:'#fff'}}>{userEmail}</span>
                   <span className="pl pl-g"><i className="bi bi-check-circle-fill"></i> Active</span>
                 </div>

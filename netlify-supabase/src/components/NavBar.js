@@ -5,38 +5,37 @@ import { useRouter } from 'next/router';
 
 /**
  * NavBar — session-aware
- * Public links: Home, About Us, 🧠 IQ Quiz, Contact Us, Login, Register
- * Members only (approved players + admin): Our Program, 🎓 Education
- * Hidden from nav: Store (accessible via URL but not listed)
+ * Public:  Home, About Us, IQ Quiz, Contact Us
+ * Members: Our Program, Education (approved players + admin only)
+ * Store:   Hidden from nav (code kept for future use)
  */
 export default function NavBar({ active }) {
   const session  = useSession();
   const supabase = useSupabaseClient();
   const router   = useRouter();
 
-  const [isAdmin,    setIsAdmin]    = useState(false);
-  const [isMember,   setIsMember]   = useState(false);
-  const [profileLoaded, setProfileLoaded] = useState(false);
+  const [isAdmin,  setIsAdmin]  = useState(false);
+  const [isMember, setIsMember] = useState(false);
+  const [loaded,   setLoaded]   = useState(false);
 
-  const signOut = async () => {
-    await supabase.auth.signOut();
-    router.push('/');
-  };
-
-  // Load profile role/status once session is ready
   useEffect(() => {
-    if (!session) { setProfileLoaded(true); return; }
+    if (!session) { setLoaded(true); return; }
     supabase.from('profiles').select('role,status').eq('id', session.user.id).single()
       .then(({ data }) => {
         if (data) {
           setIsAdmin(data.role === 'admin');
           setIsMember(data.role === 'admin' || (data.role === 'player' && data.status === 'approved'));
         }
-        setProfileLoaded(true);
+        setLoaded(true);
       });
   }, [session]);
 
-  // Always-visible public nav items
+  const signOut = async () => {
+    await supabase.auth.signOut();
+    router.push('/');
+  };
+
+  // Always-visible public nav
   const publicNav = [
     { href: '/',        label: 'Home',        key: 'home'    },
     { href: '/about',   label: 'About Us',    key: 'about'   },
@@ -44,7 +43,7 @@ export default function NavBar({ active }) {
     { href: '/contact', label: 'Contact Us',  key: 'contact' },
   ];
 
-  // Members-only nav items
+  // Members-only nav (hidden from public)
   const memberNav = [
     { href: '/program',            label: 'Our Program',  key: 'program'   },
     { href: '/football-education', label: '🎓 Education', key: 'education' },
@@ -54,12 +53,8 @@ export default function NavBar({ active }) {
     <nav className="navbar navbar-expand-lg navbar-dark bg-dark py-3 sticky-top shadow">
       <div className="container">
         <Link className="navbar-brand fw-bold d-flex align-items-center gap-2" href="/">
-          <img
-            src="/images/OFA New Logo.jpg"
-            alt="OFA Logo" width="48" height="48"
-            className="rounded-circle border border-warning border-2"
-            style={{ objectFit: 'cover' }}
-          />
+          <img src="/images/OFA New Logo.jpg" alt="OFA Logo" width="48" height="48"
+            className="rounded-circle border border-warning border-2" style={{objectFit:'cover'}} />
           <span className="text-warning">OLUFUNKE FOOTBALL ACADEMY</span>
         </Link>
 
@@ -75,35 +70,31 @@ export default function NavBar({ active }) {
             {/* Public links */}
             {publicNav.map(n => (
               <li className="nav-item" key={n.key}>
-                <Link className={`nav-link${active === n.key ? ' active' : ''}`} href={n.href}>
-                  {n.label}
-                </Link>
+                <Link className={`nav-link${active===n.key?' active':''}`} href={n.href}>{n.label}</Link>
               </li>
             ))}
 
-            {/* Members-only links — shown only when approved */}
-            {profileLoaded && isMember && memberNav.map(n => (
+            {/* Members-only links */}
+            {loaded && isMember && memberNav.map(n => (
               <li className="nav-item" key={n.key}>
-                <Link className={`nav-link${active === n.key ? ' active' : ''}`} href={n.href}>
-                  {n.label}
-                </Link>
+                <Link className={`nav-link${active===n.key?' active':''}`} href={n.href}>{n.label}</Link>
               </li>
             ))}
 
-            {/* Admin dashboard link */}
-            {profileLoaded && isAdmin && (
+            {/* Admin link */}
+            {loaded && isAdmin && (
               <li className="nav-item">
-                <Link className={`nav-link${active === 'admin' ? ' active' : ''} text-warning`} href="/admin">
+                <Link className={`nav-link${active==='admin'?' active':''} text-warning`} href="/admin">
                   <i className="bi bi-shield-fill-check me-1"></i>Admin
                 </Link>
               </li>
             )}
 
-            {/* Auth area */}
+            {/* Auth */}
             {session ? (
               <>
                 <li className="nav-item ms-lg-2">
-                  <Link className={`nav-link${active === 'dashboard' ? ' active' : ''}`} href="/dashboard">
+                  <Link className={`nav-link${active==='dashboard'?' active':''}`} href="/dashboard">
                     <i className="bi bi-speedometer2 me-1"></i>Dashboard
                   </Link>
                 </li>

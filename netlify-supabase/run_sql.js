@@ -29,6 +29,7 @@ const FILES = [
   'levels_schema.sql',
   'assign_levels.sql',
   'make_admin.sql',
+  'updates.sql',
 ];
 
 async function main() {
