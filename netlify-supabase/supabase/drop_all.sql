@@ -1,0 +1,27 @@
+-- Drop everything and start fresh
+DROP TABLE IF EXISTS public.lesson_exam_results CASCADE;
+DROP TABLE IF EXISTS public.course_exam_results CASCADE;
+DROP TABLE IF EXISTS public.lesson_exams CASCADE;
+DROP TABLE IF EXISTS public.lesson_progress CASCADE;
+DROP TABLE IF EXISTS public.player_progress CASCADE;
+DROP TABLE IF EXISTS public.lessons CASCADE;
+DROP TABLE IF EXISTS public.courses CASCADE;
+DROP TABLE IF EXISTS public.quiz_attempts CASCADE;
+DROP TABLE IF EXISTS public.quiz_options CASCADE;
+DROP TABLE IF EXISTS public.quiz_questions CASCADE;
+DROP TABLE IF EXISTS public.quiz_weeks CASCADE;
+DROP TABLE IF EXISTS public.contact_messages CASCADE;
+DROP TABLE IF EXISTS public.next_fixtures CASCADE;
+DROP TABLE IF EXISTS public.match_results CASCADE;
+DROP TABLE IF EXISTS public.standings CASCADE;
+DROP TABLE IF EXISTS public.management_team CASCADE;
+DROP TABLE IF EXISTS public.booking_packages CASCADE;
+DROP TABLE IF EXISTS public.products CASCADE;
+DROP TABLE IF EXISTS public.posts CASCADE;
+DROP TABLE IF EXISTS public.players CASCADE;
+DROP TABLE IF EXISTS public.profiles CASCADE;
+DROP VIEW IF EXISTS public.user_level CASCADE;
+DROP FUNCTION IF EXISTS public.is_admin() CASCADE;
+DROP FUNCTION IF EXISTS public.is_approved_member() CASCADE;
+DROP FUNCTION IF EXISTS public.handle_new_user() CASCADE;
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
