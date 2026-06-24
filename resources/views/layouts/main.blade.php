@@ -63,12 +63,20 @@ use Illuminate\Support\Str;
             font-size: 2rem;
             color: #4CAF50;
         }
-        img[src=""], img:not([src]) {
-            background: #e9ecef;
+        img { max-width: 100%; height: auto; }
+        img[src=""], img:not([src]) { background: #e9ecef; }
+        .card-img-top { width: 100%; object-fit: cover; }
+        .news-card .card-img-top { background: #e9ecef; min-height: 200px; }
+        /* Lagos time bar */
+        #ofa-time-bar {
+            background: linear-gradient(90deg,#10316B,#1a4a9e);
+            color:#fff; font-size:.78rem; padding:5px 0;
+            display:flex; align-items:center; justify-content:center;
+            gap:16px; flex-wrap:wrap; letter-spacing:.01em;
         }
-        .news-card .card-img-top {
-            background: #e9ecef;
-            min-height: 200px;
+        #ofa-time-bar .time-sep { opacity:.35; }
+        @media print {
+            #ofa-time-bar { display:none; }
         }
         .profile-img-fallback {
             width: 110px;
@@ -90,6 +98,16 @@ use Illuminate\Support\Str;
     </style>
 </head>
 <body>
+    <!-- Lagos Live Time Bar -->
+    <div id="ofa-time-bar">
+        <span><i class="bi bi-geo-alt-fill me-1" style="color:#fbbf24;"></i>Lagos, Nigeria</span>
+        <span class="time-sep">|</span>
+        <span id="ofa-live-date"></span>
+        <span class="time-sep">|</span>
+        <span id="ofa-live-time" style="font-weight:700;color:#fbbf24;"></span>
+        <span style="color:rgba(255,255,255,.5);font-size:.72rem;">WAT (UTC+1)</span>
+    </div>
+
     <!-- Navigation Bar -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark py-3 sticky-top shadow">
         <div class="container">
@@ -246,6 +264,26 @@ use Illuminate\Support\Str;
 
     <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Live Lagos Time Clock -->
+    <script>
+    (function() {
+        var dateEl = document.getElementById('ofa-live-date');
+        var timeEl = document.getElementById('ofa-live-time');
+        function tick() {
+            var now = new Date();
+            if (dateEl) dateEl.textContent = now.toLocaleDateString('en-GB', {
+                timeZone: 'Africa/Lagos', weekday: 'short', day: 'numeric', month: 'short', year: 'numeric'
+            });
+            if (timeEl) timeEl.textContent = now.toLocaleTimeString('en-GB', {
+                timeZone: 'Africa/Lagos', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
+            });
+        }
+        tick();
+        setInterval(tick, 1000);
+    })();
+    </script>
+
     @stack('scripts')
 </body>
 </html>

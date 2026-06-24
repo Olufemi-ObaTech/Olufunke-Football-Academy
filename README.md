@@ -1,59 +1,124 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# ⚽ Olufunke Football Academy — Official Website
 
 <p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+  <img src="netlify-supabase/public/images/OFA New Logo.jpg" width="120" alt="OFA Logo" style="border-radius:50%;" />
 </p>
 
-## About Laravel
+<p align="center">
+  <strong>Chasing Excellence, Inspiring Futures</strong><br/>
+  <a href="https://olufunkefootballacademy.com">olufunkefootballacademy.com</a>
+</p>
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## About
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+**Olufunke Football Academy (OFA)** is a FIFA TMS-registered, LSFA-affiliated football academy based in Lagos, Nigeria. Founded in September 2023 under RC-7147523, OFA discovers and nurtures young footballers into better athletes and better people.
 
-## Learning Laravel
+This repository contains the official OFA website — a **Next.js 14** application deployed on **Netlify** with **Supabase** as the backend.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+## Features
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+- 🏠 **Public Pages** — Home, About Us, Contact, Our Store
+- 🧠 **Football IQ Quiz** — Weekly quizzes with live leaderboards (open to all, no login required)
+- 🔐 **Player Portal** — Registration, login (email/password, magic link, Google, GitHub)
+- 📊 **Player Dashboard** — Progress tracking, course completion, quiz history
+- 🎓 **Football Education** — E-learning platform with modular courses and lessons
+- ⚽ **Our Program** — Training details, team formation, tournament info
+- 👨‍💼 **Admin Panel** — Player management, quiz creation, news/spotlight management, league results
+- 📰 **News & Media** — Latest news, match reports, highlight videos
+- 📊 **League Standings** — 2026/27 LSFA State League scoreboard
 
-## Laravel Sponsors
+## Tech Stack
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+| Layer | Technology |
+|-------|------------|
+| Frontend | Next.js 14, React 18, Bootstrap 5 |
+| Backend | Supabase (PostgreSQL + Auth + Storage) |
+| Serverless | Netlify Functions (Node.js) |
+| Hosting | Netlify |
+| CI/CD | GitHub Actions |
+| Domain | olufunkefootballacademy.com |
 
-### Premium Partners
+## Project Structure
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+```
+olufunke-fa/
+├── netlify-supabase/          ← Next.js app (deployed to Netlify)
+│   ├── netlify/functions/     ← Serverless API functions
+│   │   ├── _shared/           ← Shared security utilities
+│   │   ├── auth-handler.js    ← OAuth/magic link callback
+│   │   ├── contact.js         ← Contact form submissions
+│   │   ├── players.js         ← Player CRUD API
+│   │   └── quiz.js            ← Quiz engine + leaderboard
+│   ├── public/images/         ← Static images
+│   ├── src/
+│   │   ├── components/        ← NavBar, Footer, QuizCTA
+│   │   ├── lib/               ← Supabase client, API helpers, security
+│   │   ├── pages/             ← All pages (Next.js file-based routing)
+│   │   └── styles/            ← Global CSS
+│   ├── supabase/              ← SQL schemas, seed data, RLS policies
+│   ├── netlify.toml           ← Build config, redirects, security headers
+│   └── package.json
+├── app/                       ← Laravel backend (PHP)
+├── routes/                    ← Laravel routes
+└── resources/                 ← Laravel views
+```
 
-## Contributing
+## Security
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+- 🔒 **HTTPS** — Enforced via HSTS headers
+- 🛡️ **CSP** — Content Security Policy restricting script/style sources
+- 🚫 **XSS Protection** — Input sanitization on all user inputs (client + server)
+- 📛 **CORS** — Origin-validated headers on all API functions
+- ⏱️ **Rate Limiting** — IP-based rate limiting on all serverless functions
+- 🔐 **Auth** — Supabase Auth with email/password, magic link, Google, GitHub
+- 🛑 **Open Redirect Prevention** — Auth handler validates redirect destinations
+- 📋 **RLS** — Row Level Security policies on all Supabase tables
 
-## Code of Conduct
+## Deployment
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### Prerequisites
+- Node.js 20+
+- Netlify account with site connected
+- Supabase project with schema deployed
 
-## Security Vulnerabilities
+### Environment Variables (set in Netlify Dashboard)
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+| Variable | Description |
+|----------|-------------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase public anon key |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key (secret) |
+| `NEXT_PUBLIC_SITE_URL` | `https://olufunkefootballacademy.com` |
+
+### GitHub Secrets (for CI/CD)
+
+| Secret | Description |
+|--------|-------------|
+| `NETLIFY_AUTH_TOKEN` | Netlify personal access token |
+| `NETLIFY_SITE_ID` | Netlify site ID |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase public anon key |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key |
+
+### Custom Domain
+
+1. In Netlify → **Domain Management** → Add `olufunkefootballacademy.com`
+2. Update DNS records as directed by Netlify
+3. Netlify auto-provisions free SSL/HTTPS
+4. In Supabase → **Authentication** → **URL Configuration**:
+   - Site URL: `https://olufunkefootballacademy.com`
+   - Redirect URLs: `https://olufunkefootballacademy.com/auth/callback`
+
+## Contact
+
+- **Email:** Olufunkefootballacademy@gmail.com
+- **Phone:** 09079917993
+- **YouTube:** [@olufunkefootballacademy](https://www.youtube.com/@olufunkefootballacademy)
+- **Facebook:** [Olufunke Football Academy](https://web.facebook.com/people/Olufunke-Football-Academy/61554694136830/)
+- **Instagram:** [@olufunkefootballacademy](https://www.instagram.com/olufunkefootballacademy)
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+© 2026 Olufunke Football Academy. All rights reserved.

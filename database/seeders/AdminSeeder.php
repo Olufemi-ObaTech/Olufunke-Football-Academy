@@ -38,5 +38,22 @@ class AdminSeeder extends Seeder
                 'age_group'   => 'U17',
             ]
         );
+
+        // Create a demo approved Guardian
+        User::updateOrCreate(
+            ['email' => 'guardian@olufunkefa.com'],
+            [
+                'name'        => 'Demo Guardian',
+                'email'       => 'guardian@olufunkefa.com',
+                'password'    => Hash::make('Guardian@2025'),
+                'role'        => 'guardian',
+                'status'      => 'approved',
+                'phone'       => '09079917993',
+                'position'    => 'Parent/Guardian',
+                'age'         => 0,
+                'nationality' => 'Nigerian',
+                'age_group'   => 'N/A',
+            ]
+        );
     }
 }

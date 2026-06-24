@@ -32,6 +32,16 @@ class PageController extends Controller
         return view('pages.program');
     }
 
+    public function psaReport()
+    {
+        return view('pages.psa-report');
+    }
+
+    public function consentForm()
+    {
+        return view('pages.consent-form');
+    }
+
     public function footballEducation()
     {
         $courses = Course::with('lessons')->get();

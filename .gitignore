@@ -5,8 +5,12 @@
 .env.*.local
 .env.backup
 .env.production
+
+# Next.js build output & deps
 netlify-supabase/.next/
 netlify-supabase/node_modules/
+
+# PHP/Laravel
 .phpactor.json
 .phpunit.result.cache
 /.fleet
@@ -26,3 +30,20 @@ netlify-supabase/node_modules/
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# SQLite database file
+olufunke_db
+
+# Unrelated projects
+BestBikeApp/
+
+# C# build artifacts
+olufunkefootballacademy/bin/
+olufunkefootballacademy/obj/
+olufunkefootballacademy/pub/
+
+# Utility scripts (not needed in production)
+fix_all.php
+seed_lessons.php
+setup_storage.php
+update_2627.php

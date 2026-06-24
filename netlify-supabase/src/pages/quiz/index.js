@@ -12,6 +12,19 @@ export default function QuizIndex() {
   const [pastQuizzes,  setPastQuizzes]  = useState([]);
   const [myBest,       setMyBest]       = useState(null);
   const [loading,      setLoading]      = useState(true);
+  const [liveTime,     setLiveTime]     = useState('');
+  const [liveDate,     setLiveDate]     = useState('');
+
+  useEffect(() => {
+    const tick = () => {
+      const now = new Date();
+      setLiveTime(now.toLocaleTimeString('en-GB', { timeZone: 'Africa/Lagos', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }));
+      setLiveDate(now.toLocaleDateString('en-GB', { timeZone: 'Africa/Lagos', weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }));
+    };
+    tick();
+    const timer = setInterval(tick, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     async function load() {
@@ -69,11 +82,22 @@ export default function QuizIndex() {
           <div className="mb-3" style={{fontSize:'3.5rem'}}>🧠⚽</div>
           <h1 className="fw-bold display-5">Weekly Football IQ Quiz</h1>
           <p className="lead opacity-75 mb-3">Test your football knowledge — open to everyone, no login required!</p>
-          <div className="d-flex justify-content-center gap-3 flex-wrap">
+          <div className="d-flex justify-content-center gap-3 flex-wrap mb-3">
             <span className="badge bg-warning text-dark fs-6 px-3 py-2"><i className="bi bi-lightning-fill me-1"></i>New Quiz Every Week</span>
             <span className="badge bg-white text-dark fs-6 px-3 py-2"><i className="bi bi-trophy-fill me-1 text-warning"></i>Live Leaderboard</span>
             <span className="badge bg-success fs-6 px-3 py-2"><i className="bi bi-people-fill me-1"></i>Open to All</span>
           </div>
+          {liveDate && (
+            <div className="d-flex justify-content-center align-items-center gap-2 mt-2">
+              <span className="badge bg-dark bg-opacity-50 fs-6 px-3 py-2" style={{letterSpacing:'.5px'}}>
+                <i className="bi bi-geo-alt-fill text-warning me-1"></i>Lagos, Nigeria
+                &nbsp;|&nbsp;
+                <i className="bi bi-calendar3 me-1"></i>{liveDate}
+                &nbsp;|&nbsp;
+                <i className="bi bi-clock-fill me-1"></i>{liveTime} <span style={{fontSize:'.75em',opacity:.8}}>WAT</span>
+              </span>
+            </div>
+          )}
         </div>
       </section>
 

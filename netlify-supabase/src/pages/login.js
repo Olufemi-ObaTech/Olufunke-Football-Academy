@@ -3,6 +3,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useSupabaseClient, useSession } from '@supabase/auth-helpers-react';
+import { checkRateLimit, sanitizeInput, validateEmail } from '../lib/security';
 
 export default function Login() {
   const supabase = useSupabaseClient();
@@ -31,17 +32,45 @@ export default function Login() {
 
   const handlePassword = async (e) => {
     e.preventDefault();
-    setLoading(true); setError(''); setMessage('');
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    setError(''); setMessage('');
+
+    // Rate limit: max 5 password login attempts per minute
+    if (!checkRateLimit('login-password', 5, 60000)) {
+      setError('Too many login attempts. Please wait a minute and try again.');
+      return;
+    }
+
+    const cleanEmail = sanitizeInput(email).toLowerCase();
+    if (!validateEmail(cleanEmail)) {
+      setError('Please enter a valid email address.');
+      return;
+    }
+
+    setLoading(true);
+    const { error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password });
     setLoading(false);
     if (error) setError(error.message);
   };
 
   const handleMagicLink = async (e) => {
     e.preventDefault();
-    setLoading(true); setError(''); setMessage('');
+    setError(''); setMessage('');
+
+    // Rate limit: max 3 magic link requests per minute
+    if (!checkRateLimit('login-magic', 3, 60000)) {
+      setError('Too many requests. Please wait a minute before trying again.');
+      return;
+    }
+
+    const cleanEmail = sanitizeInput(email).toLowerCase();
+    if (!validateEmail(cleanEmail)) {
+      setError('Please enter a valid email address.');
+      return;
+    }
+
+    setLoading(true);
     const { error } = await supabase.auth.signInWithOtp({
-      email,
+      email: cleanEmail,
       options: { emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/confirm` },
     });
     setLoading(false);

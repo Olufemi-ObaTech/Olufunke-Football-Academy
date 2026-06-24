@@ -3,17 +3,22 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useSupabaseClient, useSession } from '@supabase/auth-helpers-react';
+import { checkRateLimit, sanitizeForm, validateEmail, validatePassword } from '../lib/security';
 
 export default function Register() {
   const supabase = useSupabaseClient();
   const session  = useSession();
   const router   = useRouter();
 
-  const [step,    setStep]    = useState(1); // 1=personal, 2=football, 3=account
-  const [loading, setLoading] = useState(false);
-  const [error,   setError]   = useState('');
-  const [success, setSuccess] = useState(false);
-  const [showPwd, setShowPwd] = useState(false);
+  // step 0 = role selector; 1–4 = player registration steps
+  const [roleType,    setRoleType]    = useState(null);  // 'player' | 'guardian' | 'coach'
+  const [step,        setStep]        = useState(1); // 1=personal, 2=football, 3=consent&photo, 4=account
+  const [loading,     setLoading]     = useState(false);
+  const [error,       setError]       = useState('');
+  const [success,     setSuccess]     = useState(false);
+  const [showPwd,     setShowPwd]     = useState(false);
+  const [consentFile, setConsentFile] = useState(null);
+  const [photoFile,   setPhotoFile]   = useState(null);
 
   const [form, setForm] = useState({
     name:'', email:'', phone:'', nationality:'Nigerian',
@@ -24,6 +29,12 @@ export default function Register() {
   useEffect(() => {
     if (session) router.replace('/dashboard');
   }, [session]);
+
+  const chooseRole = (role) => {
+    if (role === 'guardian') { router.push('/guardian-register'); return; }
+    if (role === 'coach')    { router.push('/coach-register');    return; }
+    setRoleType('player');
+  };
 
   const handle = e => setForm(p => ({...p, [e.target.name]: e.target.value}));
 
@@ -39,6 +50,15 @@ export default function Register() {
       if (!form.age_group) return 'Age group is required.';
     }
     if (step === 3) {
+      if (!consentFile) return 'You must upload a signed consent form (PDF).';
+      if (consentFile.type !== 'application/pdf') return 'Consent form must be a PDF file.';
+      if (consentFile.size > 5 * 1024 * 1024) return 'Consent PDF must be under 5MB.';
+      if (!photoFile) return 'You must upload your passport photograph.';
+      const allowed = ['image/jpeg','image/jpg','image/png','image/webp'];
+      if (!allowed.includes(photoFile.type)) return 'Passport photo must be JPG or PNG.';
+      if (photoFile.size > 3 * 1024 * 1024) return 'Passport photo must be under 3MB.';
+    }
+    if (step === 4) {
       if (form.password.length < 8) return 'Password must be at least 8 characters.';
       if (form.password !== form.password_confirmation) return 'Passwords do not match.';
     }
@@ -56,31 +76,64 @@ export default function Register() {
     e.preventDefault();
     const err = validateStep();
     if (err) { setError(err); return; }
+
+    if (!checkRateLimit('register', 3, 300000)) {
+      setError('Too many registration attempts. Please wait a few minutes.');
+      return;
+    }
+
+    if (!validateEmail(form.email.trim())) {
+      setError('Please enter a valid email address.');
+      return;
+    }
+
+    const pwdCheck = validatePassword(form.password);
+    if (!pwdCheck.valid) {
+      setError(pwdCheck.errors[0]);
+      return;
+    }
+
     setLoading(true); setError('');
 
-    const { error: signUpError } = await supabase.auth.signUp({
-      email:    form.email.trim(),
+    const clean = sanitizeForm(form);
+
+    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+      email:    clean.email.trim(),
       password: form.password,
       options: {
         data: {
-          full_name:   form.name.trim(),
-          phone:       form.phone.trim(),
-          nationality: form.nationality,
-          position:    form.position,
-          age:         parseInt(form.age),
-          age_group:   form.age_group,
+          full_name:   clean.name.trim(),
+          phone:       clean.phone.trim(),
+          nationality: clean.nationality,
+          position:    clean.position,
+          age:         parseInt(clean.age),
+          age_group:   clean.age_group,
         },
         emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/confirm`,
       },
     });
 
+    if (signUpError) { setLoading(false); setError(signUpError.message); return; }
+
+    // Upload consent PDF
+    if (consentFile && signUpData?.user?.id) {
+      const consentName = `consent_player_${signUpData.user.id}_${Date.now()}.pdf`;
+      await supabase.storage.from('consent-forms').upload(consentName, consentFile, { contentType: 'application/pdf', upsert: true });
+    }
+
+    // Upload passport photo
+    if (photoFile && signUpData?.user?.id) {
+      const ext = photoFile.name.split('.').pop();
+      const photoName = `passport_player_${signUpData.user.id}_${Date.now()}.${ext}`;
+      await supabase.storage.from('player-photos').upload(photoName, photoFile, { contentType: photoFile.type, upsert: true });
+    }
+
     setLoading(false);
-    if (signUpError) { setError(signUpError.message); return; }
     setSuccess(true);
   };
 
   const LOGO = '/images/OFA New Logo.jpg';
-  const steps = ['Personal Info', 'Football Profile', 'Account Security'];
+  const steps = ['Personal Info', 'Football Profile', 'Documents', 'Account Security'];
 
   if (success) return (
     <>
@@ -110,9 +163,84 @@ export default function Register() {
     </>
   );
 
-  return (
+  /* ── ROLE SELECTOR (step 0) ───────────────────────────────────────── */
+  if (!roleType) return (
     <>
       <Head><title>Register | Olufunke Football Academy</title></Head>
+      <section style={{ minHeight:'100vh', background:'linear-gradient(135deg,#10316B 60%,#4CAF50 100%)', display:'flex', alignItems:'center', padding:'32px 16px', fontFamily:"'Montserrat',Arial,sans-serif" }}>
+        <div style={{ width:'100%', maxWidth:640, margin:'0 auto' }}>
+          <div style={{ textAlign:'center', marginBottom:32 }}>
+            <img src={LOGO} alt="OFA" style={{ width:80, height:80, borderRadius:'50%', border:'3px solid #ffc107', objectFit:'cover', marginBottom:12 }} />
+            <h2 style={{ color:'#fff', fontWeight:800, margin:'0 0 6px', fontSize:'1.6rem' }}>Join Olufunke Football Academy</h2>
+            <p style={{ color:'rgba(255,255,255,.75)', fontSize:'.9rem', margin:0 }}>Select how you are registering below</p>
+          </div>
+
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(170px,1fr))', gap:16 }}>
+            {[
+              {
+                role: 'player', icon: 'bi-person-circle', emoji: '⚽',
+                title: 'Player',
+                desc: 'I am a footballer joining the academy',
+                color: '#10316B', accent: '#1e4db7',
+                badge: 'Ages 8–26',
+              },
+              {
+                role: 'guardian', icon: 'bi-person-heart', emoji: '👨‍👩‍👦',
+                title: 'Parent / Guardian',
+                desc: "I am registering on behalf of my child",
+                color: '#1a5c2a', accent: '#15803d',
+                badge: 'Parent / Guardian',
+              },
+              {
+                role: 'coach', icon: 'bi-person-video2', emoji: '🎓',
+                title: 'Coach / Staff',
+                desc: 'I am applying to join as a coach',
+                color: '#7c3aed', accent: '#6d28d9',
+                badge: 'Professional',
+              },
+            ].map(card => (
+              <button
+                key={card.role}
+                onClick={() => chooseRole(card.role)}
+                style={{
+                  background:'#fff', border:`2px solid transparent`,
+                  borderRadius:18, padding:'28px 20px', textAlign:'center',
+                  cursor:'pointer', transition:'all .2s', boxShadow:'0 8px 32px rgba(0,0,0,.2)',
+                  display:'flex', flexDirection:'column', alignItems:'center', gap:10,
+                }}
+                onMouseEnter={e => { e.currentTarget.style.border=`2px solid ${card.color}`; e.currentTarget.style.transform='translateY(-4px)'; }}
+                onMouseLeave={e => { e.currentTarget.style.border='2px solid transparent'; e.currentTarget.style.transform=''; }}
+              >
+                <div style={{ width:64, height:64, borderRadius:'50%', background:`linear-gradient(135deg,${card.color},${card.accent})`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.7rem', flexShrink:0 }}>
+                  {card.emoji}
+                </div>
+                <div>
+                  <div style={{ fontWeight:800, fontSize:'1.05rem', color:card.color, marginBottom:4 }}>{card.title}</div>
+                  <div style={{ fontSize:'.8rem', color:'#64748b', lineHeight:1.5, marginBottom:8 }}>{card.desc}</div>
+                  <span style={{ display:'inline-block', padding:'3px 10px', borderRadius:20, background:`${card.color}15`, color:card.color, fontWeight:700, fontSize:'.7rem' }}>{card.badge}</span>
+                </div>
+                <div style={{ marginTop:4, color:card.color, fontWeight:700, fontSize:'.85rem' }}>
+                  Register →
+                </div>
+              </button>
+            ))}
+          </div>
+
+          <div style={{ textAlign:'center', marginTop:24 }}>
+            <span style={{ color:'rgba(255,255,255,.7)', fontSize:'.83rem' }}>
+              Already have an account?{' '}
+              <Link href="/login" style={{ color:'#fbbf24', fontWeight:700, textDecoration:'none' }}>Log In →</Link>
+            </span>
+          </div>
+        </div>
+      </section>
+    </>
+  );
+
+  /* ── PLAYER REGISTRATION FORM (steps 1–4) ────────────────────────── */
+  return (
+    <>
+      <Head><title>Player Registration | Olufunke Football Academy</title></Head>
 
       <section style={{
         minHeight: '100vh',
@@ -122,11 +250,16 @@ export default function Register() {
       }}>
         <div style={{width:'100%',maxWidth:560,margin:'0 auto'}}>
 
+          {/* Back to role selector */}
+          <button onClick={() => setRoleType(null)} style={{ background:'transparent', border:'none', color:'rgba(255,255,255,.75)', cursor:'pointer', fontSize:'.83rem', marginBottom:16, padding:0, display:'flex', alignItems:'center', gap:6 }}>
+            <i className="bi bi-arrow-left"></i> Choose a different role
+          </button>
+
           {/* Header */}
           <div style={{textAlign:'center',marginBottom:24}}>
             <img src={LOGO} alt="OFA" style={{width:72,height:72,borderRadius:'50%',border:'3px solid #ffc107',objectFit:'cover',marginBottom:10}} />
-            <h2 style={{color:'#fff',fontWeight:800,margin:'0 0 4px'}}>Join Olufunke Football Academy</h2>
-            <p style={{color:'rgba(255,255,255,.7)',fontSize:'.85rem',margin:0}}>Register as a player — free to join</p>
+            <h2 style={{color:'#fff',fontWeight:800,margin:'0 0 4px'}}>Player Registration</h2>
+            <p style={{color:'rgba(255,255,255,.7)',fontSize:'.85rem',margin:0}}>Join Olufunke Football Academy as a player</p>
           </div>
 
           {/* Step indicator */}
@@ -143,13 +276,13 @@ export default function Register() {
           <div style={{background:'#fff',borderRadius:20,overflow:'hidden',boxShadow:'0 20px 60px rgba(0,0,0,.25)'}}>
             <div style={{background:'#10316B',padding:'14px 24px',display:'flex',alignItems:'center',gap:10}}>
               <i className="bi bi-person-plus-fill" style={{color:'#fbbf24',fontSize:'1.1rem'}}></i>
-              <span style={{color:'#fff',fontWeight:700}}>Step {step} of 3: {steps[step-1]}</span>
+              <span style={{color:'#fff',fontWeight:700}}>Step {step} of 4: {steps[step-1]}</span>
             </div>
 
             <div style={{padding:'24px 28px'}}>
               {error && <div style={{background:'#fee2e2',border:'1px solid #fca5a5',borderRadius:10,padding:'10px 14px',color:'#b91c1c',marginBottom:16,fontSize:'.83rem',display:'flex',alignItems:'center',gap:8}}><i className="bi bi-exclamation-circle-fill"></i>{error}</div>}
 
-              <form onSubmit={step < 3 ? (e)=>{e.preventDefault();next();} : submit}>
+              <form onSubmit={step < 4 ? (e)=>{e.preventDefault();next();} : submit}>
 
                 {/* STEP 1: Personal Info */}
                 {step === 1 && (
@@ -201,8 +334,72 @@ export default function Register() {
                   </div>
                 )}
 
-                {/* STEP 3: Account Security */}
+                {/* STEP 3: Documents — Consent PDF + Passport Photo */}
                 {step === 3 && (
+                  <div style={{display:'grid',gap:16}}>
+                    <div style={{background:'#fef3c7',borderRadius:12,padding:'12px 16px',fontSize:'.82rem',color:'#92400e',display:'flex',alignItems:'flex-start',gap:8}}>
+                      <i className="bi bi-exclamation-triangle-fill mt-1 flex-shrink-0"></i>
+                      <span><strong>Required Documents:</strong> You must upload a signed Consent Form (PDF) and your passport photograph to complete registration.</span>
+                    </div>
+
+                    {/* Consent form download */}
+                    <a href="/consent-form" target="_blank" rel="noopener" style={{display:'flex',alignItems:'center',gap:12,padding:'14px',background:'linear-gradient(135deg,#10316B,#1e4db7)',borderRadius:12,textDecoration:'none',color:'#fff'}}>
+                      <div style={{width:44,height:44,borderRadius:10,background:'rgba(255,255,255,.15)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                        <i className="bi bi-file-earmark-pdf-fill" style={{fontSize:'1.3rem',color:'#fbbf24'}}></i>
+                      </div>
+                      <div>
+                        <div style={{fontWeight:700,fontSize:'.88rem'}}>Download Consent Form</div>
+                        <div style={{fontSize:'.73rem',opacity:.8}}>Print → Fill & Sign → Save as PDF → Upload below</div>
+                      </div>
+                      <i className="bi bi-box-arrow-up-right ms-auto" style={{opacity:.7}}></i>
+                    </a>
+
+                    {/* Consent PDF upload */}
+                    <div>
+                      <label style={lbl}>Signed Consent Form (PDF) <span style={{color:'#ef4444'}}>*</span></label>
+                      <div style={{border:'2px dashed '+(consentFile?'#4CAF50':'#d1d5db'),borderRadius:12,padding:'20px 16px',textAlign:'center',background:consentFile?'#f0fdf4':'#fafafa',cursor:'pointer',position:'relative'}}>
+                        <input type="file" accept="application/pdf,.pdf" onChange={e=>{if(e.target.files[0])setConsentFile(e.target.files[0]);}} style={{position:'absolute',inset:0,opacity:0,cursor:'pointer'}} />
+                        {consentFile ? (
+                          <div>
+                            <i className="bi bi-file-earmark-check-fill" style={{fontSize:'1.8rem',color:'#4CAF50'}}></i>
+                            <div style={{fontWeight:700,fontSize:'.83rem',color:'#15803d',marginTop:6}}>{consentFile.name}</div>
+                            <div style={{fontSize:'.73rem',color:'#64748b'}}>{(consentFile.size/1024).toFixed(1)} KB — Click to change</div>
+                          </div>
+                        ) : (
+                          <div>
+                            <i className="bi bi-cloud-arrow-up-fill" style={{fontSize:'1.8rem',color:'#9ca3af'}}></i>
+                            <div style={{fontWeight:600,fontSize:'.83rem',color:'#64748b',marginTop:6}}>Click to upload PDF (max 5MB)</div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Passport photo upload */}
+                    <div>
+                      <label style={lbl}>Passport Photograph <span style={{color:'#ef4444'}}>*</span></label>
+                      <div style={{border:'2px dashed '+(photoFile?'#10316B':'#d1d5db'),borderRadius:12,padding:'20px 16px',textAlign:'center',background:photoFile?'#eff6ff':'#fafafa',cursor:'pointer',position:'relative'}}>
+                        <input type="file" accept="image/jpeg,image/jpg,image/png,image/webp" onChange={e=>{if(e.target.files[0])setPhotoFile(e.target.files[0]);}} style={{position:'absolute',inset:0,opacity:0,cursor:'pointer'}} />
+                        {photoFile ? (
+                          <div style={{display:'flex',alignItems:'center',gap:12,justifyContent:'center'}}>
+                            <img src={URL.createObjectURL(photoFile)} alt="Preview" style={{width:60,height:60,borderRadius:'50%',objectFit:'cover',border:'2px solid #10316B'}} />
+                            <div style={{textAlign:'left'}}>
+                              <div style={{fontWeight:700,fontSize:'.83rem',color:'#10316B'}}>{photoFile.name}</div>
+                              <div style={{fontSize:'.73rem',color:'#64748b'}}>{(photoFile.size/1024).toFixed(1)} KB — Click to change</div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div>
+                            <i className="bi bi-person-circle" style={{fontSize:'1.8rem',color:'#9ca3af'}}></i>
+                            <div style={{fontWeight:600,fontSize:'.83rem',color:'#64748b',marginTop:6}}>Click to upload passport photo (JPG/PNG, max 3MB)</div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* STEP 4: Account Security */}
+                {step === 4 && (
                   <div style={{display:'grid',gap:14}}>
                     <div>
                       <label style={lbl}>Password <span style={{color:'#ef4444'}}>*</span></label>
@@ -246,7 +443,7 @@ export default function Register() {
                   <button type="submit" disabled={loading}
                     style={{flex:step>1?2:1,padding:'11px 0',background:'linear-gradient(135deg,#10316B,#1e4db7)',color:'#fff',border:'none',borderRadius:10,fontWeight:700,cursor:loading?'not-allowed':'pointer',fontSize:'.9rem',display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
                     {loading ? <><span className="spinner-border spinner-border-sm"></span> Registering…</>
-                    : step < 3 ? <>Next Step →</>
+                    : step < 4 ? <>Next Step →</>
                     : <><i className="bi bi-person-check-fill"></i> Register as OFA Player</>}
                   </button>
                 </div>
@@ -257,6 +454,14 @@ export default function Register() {
               <span style={{color:'#64748b',fontSize:'.83rem'}}>
                 Already have an account? <Link href="/login" style={{color:'#10316B',fontWeight:700,textDecoration:'none'}}>Log In Here →</Link>
               </span>
+              <div style={{marginTop:8,display:'flex',gap:16,justifyContent:'center',flexWrap:'wrap'}}>
+                <span style={{color:'#64748b',fontSize:'.78rem'}}>
+                  Registering your child? <Link href="/guardian-register" style={{color:'#15803d',fontWeight:700,textDecoration:'none'}}>Guardian Registration →</Link>
+                </span>
+                <span style={{color:'#64748b',fontSize:'.78rem'}}>
+                  Joining as a coach? <Link href="/coach-register" style={{color:'#7c3aed',fontWeight:700,textDecoration:'none'}}>Coach Registration →</Link>
+                </span>
+              </div>
             </div>
           </div>
         </div>

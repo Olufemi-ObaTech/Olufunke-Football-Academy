@@ -15,6 +15,106 @@ class RegisterController extends Controller
         return view('auth.register');
     }
 
+    /* ── Guardian Registration ─────────────────────────────── */
+    public function showGuardianForm()
+    {
+        return view('auth.guardian-register');
+    }
+
+    public function registerGuardian(Request $request)
+    {
+        $validated = $request->validate([
+            'name'          => 'required|string|max:100',
+            'email'         => 'required|email|unique:users,email|max:150',
+            'phone'         => 'required|string|max:20',
+            'nationality'   => 'required|string|max:60',
+            'relationship'  => 'required|string|max:50',
+            'child_name'    => 'required|string|max:100',
+            'password'      => 'required|string|min:8|confirmed',
+            'profile_photo' => 'nullable|image|mimes:jpg,jpeg,png,gif,webp|max:2048',
+            'consent_form'  => 'required|file|mimes:pdf|max:5120',
+        ]);
+
+        $profilePhotoPath = null;
+        if ($request->hasFile('profile_photo')) {
+            $file = $request->file('profile_photo');
+            $filename = 'guardian_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+            $storedPath = $file->storeAs('guardians', $filename, 'public');
+            $profilePhotoPath = 'storage/' . $storedPath;
+        }
+
+        $consentFormPath = null;
+        if ($request->hasFile('consent_form')) {
+            $file = $request->file('consent_form');
+            $filename = 'consent_' . time() . '_' . uniqid() . '.pdf';
+            $storedPath = $file->storeAs('consent-forms', $filename, 'public');
+            $consentFormPath = 'storage/' . $storedPath;
+        }
+
+        $user = User::create([
+            'name'          => $validated['name'],
+            'email'         => $validated['email'],
+            'phone'         => $validated['phone'],
+            'nationality'   => $validated['nationality'],
+            'position'      => 'Guardian of: ' . $validated['child_name'],
+            'age'           => 0,
+            'age_group'     => 'N/A',
+            'password'      => Hash::make($validated['password']),
+            'role'          => 'guardian',
+            'status'        => 'pending',
+            'profile_photo' => $profilePhotoPath,
+        ]);
+
+        Auth::login($user);
+        return redirect()->route('dashboard')->with('info', 'Guardian account created! Your account is pending approval. We will contact you within 48 hours.');
+    }
+
+    /* ── Coach Registration ────────────────────────────────── */
+    public function showCoachForm()
+    {
+        return view('auth.coach-register');
+    }
+
+    public function registerCoach(Request $request)
+    {
+        $validated = $request->validate([
+            'name'             => 'required|string|max:100',
+            'email'            => 'required|email|unique:users,email|max:150',
+            'phone'            => 'required|string|max:20',
+            'nationality'      => 'required|string|max:60',
+            'coaching_role'    => 'required|string|max:80',
+            'experience_years' => 'required|integer|min:0|max:50',
+            'qualifications'   => 'nullable|string|max:200',
+            'password'         => 'required|string|min:8|confirmed',
+            'profile_photo'    => 'nullable|image|mimes:jpg,jpeg,png,gif,webp|max:2048',
+        ]);
+
+        $profilePhotoPath = null;
+        if ($request->hasFile('profile_photo')) {
+            $file = $request->file('profile_photo');
+            $filename = 'coach_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+            $storedPath = $file->storeAs('coaches', $filename, 'public');
+            $profilePhotoPath = 'storage/' . $storedPath;
+        }
+
+        $user = User::create([
+            'name'          => $validated['name'],
+            'email'         => $validated['email'],
+            'phone'         => $validated['phone'],
+            'nationality'   => $validated['nationality'],
+            'position'      => $validated['coaching_role'],
+            'age'           => 0,
+            'age_group'     => $validated['experience_years'] . ' yrs exp',
+            'password'      => Hash::make($validated['password']),
+            'role'          => 'coach',
+            'status'        => 'pending',
+            'profile_photo' => $profilePhotoPath,
+        ]);
+
+        Auth::login($user);
+        return redirect()->route('dashboard')->with('info', 'Coach application submitted! Your application is under review by the Academy Director — you will hear back within 48 hours.');
+    }
+
     public function register(Request $request)
     {
         $validated = $request->validate([

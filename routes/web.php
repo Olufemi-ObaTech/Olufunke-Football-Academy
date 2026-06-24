@@ -16,6 +16,20 @@ Route::get('/our-store', [PageController::class, 'store'])->name('store');
 Route::get('/contact-us', [PageController::class, 'contact'])->name('contact');
 Route::post('/contact-us',[PageController::class, 'contactSubmit'])->name('contact.submit');
 
+// ── PSA Documentation PDF Report ───────────────────────────────────────────────
+Route::get('/psa-report',    [PageController::class, 'psaReport'])->name('psa-report');
+
+// ── Guardian Consent Form (printable, public) ──────────────────────────────────
+Route::get('/consent-form',  [PageController::class, 'consentForm'])->name('consent-form');
+
+// ── Guardian Registration (public) ────────────────────────────────────────────
+Route::get('/guardian-register',  [\App\Http\Controllers\Auth\RegisterController::class, 'showGuardianForm'])->name('guardian.register');
+Route::post('/guardian-register', [\App\Http\Controllers\Auth\RegisterController::class, 'registerGuardian'])->name('guardian.register.submit');
+
+// ── Coach Registration (public) ───────────────────────────────────────────────
+Route::get('/coach-register',  [\App\Http\Controllers\Auth\RegisterController::class, 'showCoachForm'])->name('coach.register');
+Route::post('/coach-register', [\App\Http\Controllers\Auth\RegisterController::class, 'registerCoach'])->name('coach.register.submit');
+
 // ── Serve uploaded files (without symlink) ──────────────────────────────────────
 Route::get('/storage/{path}', function($path) {
     $fullPath = storage_path('app/public/' . $path);
@@ -90,6 +104,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/dashboard',                    [DashboardController::class, 'admin'])->name('dashboard');
     Route::post('/players/{user}/approve',      [DashboardController::class, 'approvePlayer'])->name('players.approve');
     Route::post('/players/{user}/reject',       [DashboardController::class, 'rejectPlayer'])->name('players.reject');
+    Route::post('/guardians/{user}/approve',    [DashboardController::class, 'approveGuardian'])->name('guardians.approve');
+    Route::post('/guardians/{user}/reject',     [DashboardController::class, 'rejectGuardian'])->name('guardians.reject');
     Route::get('/players/{player}/profile',     [AdminController::class, 'playerProfile'])->name('players.profile');
 
     // Training schedules

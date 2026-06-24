@@ -9,10 +9,17 @@
         <div class="mb-3" style="font-size:3.5rem;">🧠⚽</div>
         <h1 class="fw-bold display-5">Weekly Football IQ Quiz</h1>
         <p class="lead opacity-75 mb-3">Test your football knowledge — open to everyone, no login required!</p>
-        <div class="d-flex justify-content-center gap-3 flex-wrap">
+        <div class="d-flex justify-content-center gap-3 flex-wrap mb-3">
             <span class="badge bg-warning text-dark fs-6 px-3 py-2"><i class="bi bi-lightning-fill me-1"></i>New Quiz Every Week</span>
             <span class="badge bg-white text-dark fs-6 px-3 py-2"><i class="bi bi-trophy-fill me-1 text-warning"></i>Live Leaderboard</span>
             <span class="badge bg-success fs-6 px-3 py-2"><i class="bi bi-people-fill me-1"></i>Open to All</span>
+        </div>
+        <div class="d-inline-flex align-items-center gap-2 px-4 py-2 rounded-pill" style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);">
+            <i class="bi bi-geo-alt-fill text-warning"></i>
+            <span id="quiz-date" class="small"></span>
+            <span style="opacity:.4;">|</span>
+            <span id="quiz-time" class="fw-bold text-warning small"></span>
+            <span class="small opacity-75">WAT</span>
         </div>
     </div>
 </section>

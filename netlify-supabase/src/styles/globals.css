@@ -1,4 +1,4 @@
-/* globals.css */
+/* globals.css — OFA Academy */
 *, *::before, *::after { box-sizing: border-box; }
 body {
   margin: 0;
@@ -6,12 +6,45 @@ body {
   font-family: 'Montserrat', Arial, sans-serif;
   background: #f9f9f9;
   color: #222831;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 a { color: #0070f3; }
-img { max-width: 100%; display: block; }
+img { max-width: 100%; height: auto; display: block; }
+
+/* Card/news images — always fill their fixed-height slot */
+.card-img-top { width: 100%; object-fit: cover; }
+
+/* Round profile/logo images */
+img[style*="border-radius: 50%"],
+img[style*="borderRadius:'50%'"],
+.profile-img { object-fit: cover; }
+
+/* Prevent oversized images in content areas */
+.card-body img, .consent-body img { max-width: 100%; height: auto; }
+
+/* Hero background always covers full section */
+.hero-section { background-size: cover !important; background-position: center !important; }
+
+/* Smooth transitions for interactive elements */
+a, button, .btn {
+  transition: opacity 0.2s ease, transform 0.15s ease;
+}
 
 /* Social icon brand colours (used in Footer) */
 .text-youtube   { color: #FF0000; transition: opacity .2s; }
 .text-facebook  { color: #1877F2; transition: opacity .2s; }
 .text-instagram { color: #E1306C; transition: opacity .2s; }
 .text-youtube:hover, .text-facebook:hover, .text-instagram:hover { opacity: .75; }
+
+/* Focus outlines for accessibility */
+:focus-visible {
+  outline: 2px solid #ffc107;
+  outline-offset: 2px;
+}
+
+/* Hide scrollbar on mobile nav but allow scroll */
+.navbar-collapse { scrollbar-width: thin; }
+
+/* Prevent layout shift on page load */
+html { scroll-behavior: smooth; }

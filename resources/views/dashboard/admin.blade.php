@@ -134,11 +134,16 @@
     <span class="si" style="background:rgba(99,102,241,.2);color:#a5b4fc;"><i class="bi bi-speedometer2"></i></span>Dashboard
   </a>
 
-  <div class="dsb-sec">Players</div>
+  <div class="dsb-sec">Players &amp; Guardians</div>
   <a href="#players" class="dsb-lnk" onclick="closeSidebar()">
     <span class="si" style="background:rgba(16,185,129,.2);color:#6ee7b7;"><i class="bi bi-people-fill"></i></span>
     Registered Players
     @if($counts['pending']>0)<span class="sb bg-warning text-dark">{{ $counts['pending'] }}</span>@endif
+  </a>
+  <a href="#guardians" class="dsb-lnk" onclick="closeSidebar()">
+    <span class="si" style="background:rgba(26,92,42,.3);color:#86efac;"><i class="bi bi-person-heart-fill"></i></span>
+    Guardians
+    @if($counts['guardians_pending']>0)<span class="sb bg-warning text-dark">{{ $counts['guardians_pending'] }}</span>@endif
   </a>
   <a href="{{ route('admin.spotlight.index') }}" class="dsb-lnk">
     <span class="si" style="background:rgba(251,191,36,.2);color:#fde68a;"><i class="bi bi-person-badge-fill"></i></span>Player Spotlight
@@ -463,6 +468,103 @@
           @empty
           <tr><td colspan="7" class="text-center text-muted py-5">
             <i class="bi bi-people fs-1 d-block mb-2 opacity-25"></i>No players registered yet.
+          </td></tr>
+          @endforelse
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  {{-- ── Registered Guardians Table ──────────────────────────────────────────── --}}
+  <div class="pnl" id="guardians" style="margin-top:22px;">
+    <div class="pnl-h">
+      <div class="ph">
+        <div class="phi" style="background:#dcfce7;"><i class="bi bi-person-heart-fill" style="color:#16a34a;"></i></div>
+        Registered Guardians
+        @if($counts['guardians_pending']>0)
+          <span class="pl pl-y ms-2">{{ $counts['guardians_pending'] }} pending</span>
+        @endif
+      </div>
+      <span class="pl pl-s">{{ $counts['guardians_total'] }} total</span>
+    </div>
+    <div class="table-responsive">
+      <table class="table mtbl mb-0">
+        <thead><tr>
+          <th class="ps-4" style="width:40px;">#</th>
+          <th>Guardian</th>
+          <th class="d-none d-md-table-cell">Phone</th>
+          <th class="d-none d-md-table-cell">Relationship / Child</th>
+          <th class="d-none d-lg-table-cell">Registered</th>
+          <th>Status</th>
+          <th class="text-center pe-4">Actions</th>
+        </tr></thead>
+        <tbody>
+          @forelse($guardians as $i => $guardian)
+          <tr>
+            <td class="ps-4 text-muted" style="font-size:.75rem;">{{ $i+1 }}</td>
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                @if($guardian->profile_photo)
+                  <img src="{{ asset('storage/'.$guardian->profile_photo) }}" alt="{{ $guardian->name }}" class="av"
+                       onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                  <div class="avi" style="background:linear-gradient(135deg,#1a5c2a,#4CAF50);display:none;">{{ strtoupper(substr($guardian->name,0,1)) }}</div>
+                @else
+                  <div class="avi" style="background:linear-gradient(135deg,#1a5c2a,#4CAF50);">{{ strtoupper(substr($guardian->name,0,1)) }}</div>
+                @endif
+                <div>
+                  <div class="fw-semibold" style="font-size:.83rem;color:#0d1117;">{{ $guardian->name }}</div>
+                  <div class="text-muted" style="font-size:.7rem;">{{ $guardian->email }}</div>
+                </div>
+              </div>
+            </td>
+            <td class="d-none d-md-table-cell">
+              @if($guardian->phone)<span style="font-size:.82rem;">{{ $guardian->phone }}</span>
+              @else<span class="text-muted">—</span>@endif
+            </td>
+            <td class="d-none d-md-table-cell">
+              @if($guardian->position)
+                <span class="pl pl-s" style="font-size:.72rem;">{{ $guardian->position }}</span>
+              @else
+                <span class="text-muted">—</span>
+              @endif
+            </td>
+            <td class="d-none d-lg-table-cell text-muted" style="font-size:.75rem;">{{ $guardian->created_at->format('d M Y') }}</td>
+            <td>
+              @if($guardian->status==='approved')<span class="pl pl-g"><i class="bi bi-check-circle-fill"></i> Approved</span>
+              @elseif($guardian->status==='pending')<span class="pl pl-y"><i class="bi bi-hourglass-split"></i> Pending</span>
+              @else<span class="pl pl-r"><i class="bi bi-x-circle-fill"></i> Rejected</span>@endif
+            </td>
+            <td class="text-center pe-4">
+              <div class="d-flex gap-1 justify-content-center flex-wrap">
+                @if($guardian->status!=='approved')
+                <form action="{{ route('admin.guardians.approve',$guardian) }}" method="POST" class="d-inline">@csrf
+                  <button type="submit" class="abtn" title="Approve Guardian" style="background:#dcfce7;color:#15803d;">
+                    <i class="bi bi-check-lg"></i>
+                  </button>
+                </form>
+                @endif
+                @if($guardian->status!=='rejected')
+                <form action="{{ route('admin.guardians.reject',$guardian) }}" method="POST" class="d-inline"
+                      onsubmit="return confirm('Reject guardian {{ addslashes($guardian->name) }}?')">@csrf
+                  <button type="submit" class="abtn" title="Reject Guardian" style="background:#fee2e2;color:#b91c1c;">
+                    <i class="bi bi-x-lg"></i>
+                  </button>
+                </form>
+                @endif
+                <a href="mailto:{{ $guardian->email }}" class="abtn" title="Email Guardian" style="background:#dbeafe;color:#1d4ed8;">
+                  <i class="bi bi-envelope-fill"></i>
+                </a>
+                @if($guardian->phone)
+                <a href="tel:{{ $guardian->phone }}" class="abtn" title="Call Guardian" style="background:#dcfce7;color:#15803d;">
+                  <i class="bi bi-telephone-fill"></i>
+                </a>
+                @endif
+              </div>
+            </td>
+          </tr>
+          @empty
+          <tr><td colspan="7" class="text-center text-muted py-5">
+            <i class="bi bi-person-heart fs-1 d-block mb-2 opacity-25"></i>No guardians registered yet.
           </td></tr>
           @endforelse
         </tbody>

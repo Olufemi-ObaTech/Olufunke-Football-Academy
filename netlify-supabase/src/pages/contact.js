@@ -4,6 +4,7 @@ import NavBar from '../components/NavBar';
 import Footer from '../components/Footer';
 import QuizCTA from '../components/QuizCTA';
 import { sendContactMessage } from '../lib/api';
+import { checkRateLimit, sanitizeForm, validateEmail } from '../lib/security';
 
 export default function Contact() {
   const [form,    setForm]    = useState({ name:'', email:'', phone:'', subject:'', message:'' });
@@ -15,9 +16,28 @@ export default function Contact() {
 
   const submit = async (e) => {
     e.preventDefault();
-    setLoading(true); setError(''); setSuccess('');
+    setError(''); setSuccess('');
+
+    // Rate limit: max 3 contact submissions per 2 minutes
+    if (!checkRateLimit('contact-form', 3, 120000)) {
+      setError('Too many messages sent. Please wait a couple of minutes.');
+      return;
+    }
+
+    if (!validateEmail(form.email)) {
+      setError('Please enter a valid email address.');
+      return;
+    }
+
+    if (form.message.length > 2000) {
+      setError('Message is too long (max 2000 characters).');
+      return;
+    }
+
+    setLoading(true);
     try {
-      await sendContactMessage(form);
+      const cleanForm = sanitizeForm(form);
+      await sendContactMessage(cleanForm);
       setSuccess('Thank you! Your message has been received. We\'ll get back to you shortly.');
       setForm({ name:'', email:'', phone:'', subject:'', message:'' });
     } catch(err) {

@@ -48,17 +48,23 @@ class DashboardController extends Controller
             ->latest()
             ->get();
 
+        $guardians = User::where('role', 'guardian')
+            ->latest()
+            ->get();
+
         $messages = ContactMessage::latest()->take(20)->get();
 
         $counts = [
-            'total'    => User::where('role', 'player')->count(),
-            'approved' => User::where('role', 'player')->where('status', 'approved')->count(),
-            'pending'  => User::where('role', 'player')->where('status', 'pending')->count(),
-            'rejected' => User::where('role', 'player')->where('status', 'rejected')->count(),
-            'messages' => ContactMessage::where('read', false)->count(),
+            'total'             => User::where('role', 'player')->count(),
+            'approved'          => User::where('role', 'player')->where('status', 'approved')->count(),
+            'pending'           => User::where('role', 'player')->where('status', 'pending')->count(),
+            'rejected'          => User::where('role', 'player')->where('status', 'rejected')->count(),
+            'messages'          => ContactMessage::where('read', false)->count(),
+            'guardians_total'   => User::where('role', 'guardian')->count(),
+            'guardians_pending' => User::where('role', 'guardian')->where('status', 'pending')->count(),
         ];
 
-        return view('dashboard.admin', compact('players', 'messages', 'counts', 'courses'));
+        return view('dashboard.admin', compact('players', 'guardians', 'messages', 'counts', 'courses'));
     }
 
     /** Admin: approve a player */
@@ -73,5 +79,19 @@ class DashboardController extends Controller
     {
         $user->update(['status' => 'rejected']);
         return back()->with('success', $user->name . ' has been rejected.');
+    }
+
+    /** Admin: approve a guardian */
+    public function approveGuardian(User $user)
+    {
+        $user->update(['status' => 'approved']);
+        return back()->with('success', $user->name . ' (Guardian) has been approved and can now access the Guardian Portal.');
+    }
+
+    /** Admin: reject a guardian */
+    public function rejectGuardian(User $user)
+    {
+        $user->update(['status' => 'rejected']);
+        return back()->with('success', $user->name . ' (Guardian) has been rejected.');
     }
 }

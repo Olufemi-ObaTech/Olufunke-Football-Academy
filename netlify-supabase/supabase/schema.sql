@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   age         INT,
   age_group   TEXT,
   nationality TEXT,
-  role        TEXT NOT NULL DEFAULT 'player' CHECK (role IN ('player','admin')),
+  role        TEXT NOT NULL DEFAULT 'player' CHECK (role IN ('player','admin','guardian')),
   status      TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','approved','rejected')),
   created_at  TIMESTAMPTZ DEFAULT NOW(),
   updated_at  TIMESTAMPTZ DEFAULT NOW()

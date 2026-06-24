@@ -88,11 +88,11 @@ export async function fetchLeaderboard() {
 
 // ── Contact ───────────────────────────────────────────────────
 
-export async function sendContactMessage({ name, email, subject, message }) {
+export async function sendContactMessage({ name, email, phone, subject, message }) {
   const res = await fetch(`${BASE}/contact`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name, email, subject, message }),
+    body: JSON.stringify({ name, email, phone, subject, message }),
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || 'Message failed to send');

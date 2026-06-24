@@ -2,28 +2,28 @@
  * Netlify Function: players.js
  * ─────────────────────────────
  * CRUD serverless API for the OFA Academy players table in Supabase.
+ * Secured with rate limiting, input sanitization, CORS validation.
  *
  * Endpoints (all prefixed /.netlify/functions/players):
  *   GET    ?id=<uuid>   → get single player
  *   GET                 → list all approved players
  *   POST                → create player (admin only)
- *   PUT    ?id=<uuid>   → update player
+ *   PUT    ?id=<uuid>   → update player (admin only)
  *   DELETE ?id=<uuid>   → delete player (admin only)
  */
 
 const { createClient } = require('@supabase/supabase-js');
+const {
+  rateLimit, handleCors, jsonResponse, rateLimitedResponse,
+  sanitizeBody, parseBody, getClientIp,
+} = require('./_shared/security');
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-// ── Helpers ──────────────────────────────────────────────────────
-
-/**
- * Verify the JWT Bearer token from the request Authorization header.
- * Returns the authenticated user or null.
- */
+// ── Auth Helper ──────────────────────────────────────────────────
 async function getAuthUser(event) {
   const authHeader = event.headers['authorization'] || '';
   const token = authHeader.replace('Bearer ', '').trim();
@@ -33,36 +33,46 @@ async function getAuthUser(event) {
   return error ? null : data.user;
 }
 
-function jsonResponse(statusCode, body) {
-  return {
-    statusCode,
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  };
+// ── UUID validation ──────────────────────────────────────────────
+function isValidUUID(str) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
 }
 
 // ── Handler ───────────────────────────────────────────────────────
-
 exports.handler = async (event) => {
+  // ── CORS preflight ──────────────────────────────────────────
+  const cors = handleCors(event);
+  if (cors) return cors;
+
   const method = event.httpMethod;
   const { id } = event.queryStringParameters || {};
+  const ip = getClientIp(event);
+
+  // ── Rate limiting: 30 reads/min, 10 writes/min ──────────────
+  const isWrite = ['POST', 'PUT', 'DELETE'].includes(method);
+  const { allowed, retryAfter } = rateLimit(
+    ip, `players-${isWrite ? 'write' : 'read'}`,
+    isWrite ? 10 : 30, 60000
+  );
+  if (!allowed) return rateLimitedResponse(event, retryAfter);
 
   try {
     // ── GET ──────────────────────────────────────────────────────
     if (method === 'GET') {
       if (id) {
-        // Single player
+        if (!isValidUUID(id)) {
+          return jsonResponse(400, { error: 'Invalid player ID format' }, event);
+        }
         const { data, error } = await supabase
           .from('players')
           .select('id, full_name, position, age, approved, photo_url, created_at')
           .eq('id', id)
           .single();
 
-        if (error) return jsonResponse(404, { error: 'Player not found' });
-        return jsonResponse(200, { player: data });
+        if (error) return jsonResponse(404, { error: 'Player not found' }, event);
+        return jsonResponse(200, { player: data }, event);
       }
 
-      // All approved players (public listing)
       const { data, error } = await supabase
         .from('players')
         .select('id, full_name, position, age, photo_url, goals, assists, matches, quote')
@@ -70,14 +80,13 @@ exports.handler = async (event) => {
         .order('full_name');
 
       if (error) throw error;
-      return jsonResponse(200, { players: data });
+      return jsonResponse(200, { players: data }, event);
     }
 
     // ── Auth-required routes ─────────────────────────────────────
     const user = await getAuthUser(event);
-    if (!user) return jsonResponse(401, { error: 'Unauthorized' });
+    if (!user) return jsonResponse(401, { error: 'Unauthorized — please log in' }, event);
 
-    // Verify the user is an admin via profiles table
     const { data: profile } = await supabase
       .from('profiles')
       .select('role')
@@ -85,49 +94,63 @@ exports.handler = async (event) => {
       .single();
 
     if (!profile || profile.role !== 'admin') {
-      return jsonResponse(403, { error: 'Forbidden — admin access required' });
+      return jsonResponse(403, { error: 'Forbidden — admin access required' }, event);
     }
 
     // ── POST — Create player ─────────────────────────────────────
     if (method === 'POST') {
-      const body = JSON.parse(event.body || '{}');
+      const raw = parseBody(event);
+      if (!raw) return jsonResponse(400, { error: 'Invalid request body' }, event);
+
+      const body = sanitizeBody(raw);
       const { full_name, position, age, photo_url } = body;
 
       if (!full_name || !position) {
-        return jsonResponse(400, { error: 'full_name and position are required' });
+        return jsonResponse(400, { error: 'full_name and position are required' }, event);
+      }
+
+      if (full_name.length > 100 || position.length > 50) {
+        return jsonResponse(400, { error: 'Input exceeds maximum length' }, event);
       }
 
       const { data, error } = await supabase
         .from('players')
-        .insert([{ full_name, position, age, photo_url, user_id: user.id }])
+        .insert([{ full_name, position, age: parseInt(age) || null, photo_url, user_id: user.id }])
         .select()
         .single();
 
       if (error) throw error;
-      return jsonResponse(201, { player: data });
+      return jsonResponse(201, { player: data }, event);
     }
 
     // ── PUT — Update player ──────────────────────────────────────
     if (method === 'PUT') {
-      if (!id) return jsonResponse(400, { error: 'Player id is required' });
+      if (!id || !isValidUUID(id)) {
+        return jsonResponse(400, { error: 'Valid player ID is required' }, event);
+      }
 
-      const body = JSON.parse(event.body || '{}');
+      const raw = parseBody(event);
+      if (!raw) return jsonResponse(400, { error: 'Invalid request body' }, event);
+
+      const body = sanitizeBody(raw);
       const { full_name, position, age, photo_url, approved } = body;
 
       const { data, error } = await supabase
         .from('players')
-        .update({ full_name, position, age, photo_url, approved })
+        .update({ full_name, position, age: parseInt(age) || null, photo_url, approved })
         .eq('id', id)
         .select()
         .single();
 
       if (error) throw error;
-      return jsonResponse(200, { player: data });
+      return jsonResponse(200, { player: data }, event);
     }
 
     // ── DELETE — Remove player ───────────────────────────────────
     if (method === 'DELETE') {
-      if (!id) return jsonResponse(400, { error: 'Player id is required' });
+      if (!id || !isValidUUID(id)) {
+        return jsonResponse(400, { error: 'Valid player ID is required' }, event);
+      }
 
       const { error } = await supabase
         .from('players')
@@ -135,13 +158,13 @@ exports.handler = async (event) => {
         .eq('id', id);
 
       if (error) throw error;
-      return jsonResponse(200, { message: 'Player deleted successfully' });
+      return jsonResponse(200, { message: 'Player deleted successfully' }, event);
     }
 
-    return jsonResponse(405, { error: 'Method not allowed' });
+    return jsonResponse(405, { error: 'Method not allowed' }, event);
 
   } catch (err) {
     console.error('[players function]', err);
-    return jsonResponse(500, { error: 'Internal server error', detail: err.message });
+    return jsonResponse(500, { error: 'Internal server error' }, event);
   }
 };
