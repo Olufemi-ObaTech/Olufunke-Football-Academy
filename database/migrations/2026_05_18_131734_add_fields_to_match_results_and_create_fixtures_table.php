@@ -8,12 +8,22 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // Add extra columns to match_results
+        // Add columns to match_results only if they don't already exist.
+        // On fresh installs these columns are already in create_ofa_academy_tables;
+        // on older installs (XAMPP) they may not be — so we guard each one.
         Schema::table('match_results', function (Blueprint $table) {
-            $table->string('week_label')->nullable()->after('competition');  // e.g. "WK4"
-            $table->string('venue')->nullable()->after('week_label');        // match venue
-            $table->time('kick_off_time')->nullable()->after('venue');       // e.g. 15:30
-            $table->text('notes')->nullable()->after('kick_off_time');       // short note shown on card
+            if (!Schema::hasColumn('match_results', 'week_label')) {
+                $table->string('week_label')->nullable()->after('competition');
+            }
+            if (!Schema::hasColumn('match_results', 'venue')) {
+                $table->string('venue')->nullable()->after('week_label');
+            }
+            if (!Schema::hasColumn('match_results', 'kick_off_time')) {
+                $table->time('kick_off_time')->nullable()->after('venue');
+            }
+            if (!Schema::hasColumn('match_results', 'notes')) {
+                $table->text('notes')->nullable()->after('kick_off_time');
+            }
         });
 
         // Next fixtures table
