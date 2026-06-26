@@ -12,6 +12,12 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
 
+        // Apply security headers and input sanitisation to every web request
+        $middleware->web(append: [
+            \App\Http\Middleware\SecurityHeaders::class,
+            \App\Http\Middleware\SanitizeInput::class,
+        ]);
+
         $middleware->alias([
             'admin'           => \App\Http\Middleware\AdminMiddleware::class,
             'approved.player' => \App\Http\Middleware\ApprovedPlayerMiddleware::class,

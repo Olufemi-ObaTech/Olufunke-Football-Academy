@@ -172,6 +172,48 @@
                             </div>
                         </div>
 
+                        {{-- CONSENT FORM --}}
+                        <h6 class="fw-bold text-uppercase text-muted mb-3 border-bottom pb-2">
+                            <i class="bi bi-file-earmark-check-fill me-1"></i>Consent Form
+                        </h6>
+                        <div class="alert alert-info d-flex gap-3 align-items-start mb-3">
+                            <i class="bi bi-info-circle-fill fs-5 flex-shrink-0 mt-1"></i>
+                            <div>
+                                <strong>Required for players under 18:</strong> Download, print, have a parent/guardian sign it, then upload below.
+                                <div class="mt-2">
+                                    <a href="{{ route('consent-form') }}" target="_blank"
+                                       class="btn btn-sm btn-outline-primary fw-bold">
+                                        <i class="bi bi-printer-fill me-1"></i>Open &amp; Print Consent Form
+                                    </a>
+                                    <span class="text-muted ms-2" style="font-size:.78rem;">Opens in new tab &rarr; click "Print / Save as PDF"</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">
+                                Upload Signed Consent Form (PDF, max 5MB)
+                                <span class="text-muted fw-normal" style="font-size:.8rem;">— Optional for players 18+</span>
+                            </label>
+                            <div class="card border-2 rounded-3 @error('consent_form') border-danger @enderror" style="border-color:#10316B;border-style:dashed;" id="playerConsentZone">
+                                <div class="card-body p-3 text-center">
+                                    <div id="playerConsentPreview" class="d-none mb-2">
+                                        <i class="bi bi-file-earmark-check-fill fs-2 text-success d-block mb-1"></i>
+                                        <span id="playerConsentFileName" class="fw-semibold text-success" style="font-size:.83rem;"></span>
+                                    </div>
+                                    <div id="playerConsentPlaceholder">
+                                        <i class="bi bi-file-earmark-pdf fs-2 text-muted d-block mb-2"></i>
+                                        <input type="file" id="playerConsentInput" name="consent_form" accept="application/pdf,.pdf" style="display:none;"
+                                               class="@error('consent_form') is-invalid @enderror">
+                                        <label for="playerConsentInput" class="btn btn-sm btn-outline-primary fw-bold" style="cursor:pointer;">
+                                            <i class="bi bi-cloud-arrow-up me-1"></i>Upload Signed Consent Form (PDF only)
+                                        </label>
+                                        <p class="text-muted mt-2 mb-0" style="font-size:.75rem;">Max 5 MB &middot; PDF files only &middot; Must be signed by guardian</p>
+                                    </div>
+                                </div>
+                            </div>
+                            @error('consent_form')<div class="text-danger mt-1" style="font-size:.82rem;">{{ $message }}</div>@enderror
+                        </div>
+
                         {{-- ACCOUNT SECURITY --}}
                         <h6 class="fw-bold text-uppercase text-muted mb-3 border-bottom pb-2">
                             <i class="bi bi-lock-fill me-1"></i>Account Security
@@ -277,6 +319,36 @@ if (photoInput) {
         }
     });
     photoDropZone.addEventListener('click', function() { photoInput.click(); });
+}
+
+// Player consent form upload preview
+var playerConsentInput = document.getElementById('playerConsentInput');
+var playerConsentPreview = document.getElementById('playerConsentPreview');
+var playerConsentFileName = document.getElementById('playerConsentFileName');
+var playerConsentPlaceholder = document.getElementById('playerConsentPlaceholder');
+var playerConsentZone = document.getElementById('playerConsentZone');
+if (playerConsentInput) {
+    playerConsentInput.addEventListener('change', function() {
+        var file = this.files[0];
+        if (file) {
+            if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+                alert('Please upload a PDF file only.');
+                this.value = '';
+                return;
+            }
+            if (file.size > 5 * 1024 * 1024) {
+                alert('File is too large. Maximum size is 5 MB.');
+                this.value = '';
+                return;
+            }
+            playerConsentFileName.textContent = file.name;
+            playerConsentPreview.classList.remove('d-none');
+            playerConsentPlaceholder.classList.add('d-none');
+        }
+    });
+    playerConsentZone.addEventListener('click', function(e) {
+        if (!e.target.closest('label') && !e.target.closest('input')) playerConsentInput.click();
+    });
 }
 
 // Password toggle

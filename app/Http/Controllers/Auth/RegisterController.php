@@ -52,17 +52,18 @@ class RegisterController extends Controller
         }
 
         $user = User::create([
-            'name'          => $validated['name'],
-            'email'         => $validated['email'],
-            'phone'         => $validated['phone'],
-            'nationality'   => $validated['nationality'],
-            'position'      => 'Guardian of: ' . $validated['child_name'],
-            'age'           => 0,
-            'age_group'     => 'N/A',
-            'password'      => Hash::make($validated['password']),
-            'role'          => 'guardian',
-            'status'        => 'pending',
-            'profile_photo' => $profilePhotoPath,
+            'name'              => $validated['name'],
+            'email'             => $validated['email'],
+            'phone'             => $validated['phone'],
+            'nationality'       => $validated['nationality'],
+            'position'          => 'Guardian of: ' . $validated['child_name'],
+            'age'               => 0,
+            'age_group'         => 'N/A',
+            'password'          => Hash::make($validated['password']),
+            'role'              => 'guardian',
+            'status'            => 'pending',
+            'profile_photo'     => $profilePhotoPath,
+            'consent_form_path' => $consentFormPath,
         ]);
 
         Auth::login($user);
@@ -118,39 +119,47 @@ class RegisterController extends Controller
     public function register(Request $request)
     {
         $validated = $request->validate([
-            'name'        => 'required|string|max:100',
-            'email'       => 'required|email|unique:users,email|max:150',
-            'phone'       => 'required|string|max:20',
-            'position'    => 'required|string|max:50',
-            'age'         => 'required|integer|min:8|max:40',
-            'nationality' => 'required|string|max:60',
-            'age_group'   => 'required|in:U13,U15,U17,U19,Senior',
-            'password'    => 'required|string|min:8|confirmed',
+            'name'          => 'required|string|max:100',
+            'email'         => 'required|email|unique:users,email|max:150',
+            'phone'         => 'required|string|max:20',
+            'position'      => 'required|string|max:50',
+            'age'           => 'required|integer|min:8|max:40',
+            'nationality'   => 'required|string|max:60',
+            'age_group'     => 'required|in:U13,U15,U17,U19,Senior',
+            'password'      => 'required|string|min:8|confirmed',
             'profile_photo' => 'nullable|image|mimes:jpg,jpeg,png,gif,webp|max:2048',
+            'consent_form'  => 'nullable|file|mimes:pdf|max:5120',
         ]);
 
         $profilePhotoPath = null;
         if ($request->hasFile('profile_photo')) {
             $file = $request->file('profile_photo');
             $filename = 'player_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-            // Store under public disk; path is relative to storage/app/public
             $storedPath = $file->storeAs('players', $filename, 'public');
-            // Prefix with 'storage/' so asset($user->profile_photo) resolves correctly
             $profilePhotoPath = 'storage/' . $storedPath;
         }
 
+        $consentFormPath = null;
+        if ($request->hasFile('consent_form')) {
+            $file = $request->file('consent_form');
+            $filename = 'consent_player_' . time() . '_' . uniqid() . '.pdf';
+            $storedPath = $file->storeAs('consent-forms', $filename, 'public');
+            $consentFormPath = 'storage/' . $storedPath;
+        }
+
         $user = User::create([
-            'name'        => $validated['name'],
-            'email'       => $validated['email'],
-            'phone'       => $validated['phone'],
-            'position'    => $validated['position'],
-            'age'         => $validated['age'],
-            'nationality' => $validated['nationality'],
-            'age_group'   => $validated['age_group'],
-            'password'    => Hash::make($validated['password']),
-            'role'        => 'player',
-            'status'      => 'pending',
-            'profile_photo' => $profilePhotoPath,
+            'name'              => $validated['name'],
+            'email'             => $validated['email'],
+            'phone'             => $validated['phone'],
+            'position'          => $validated['position'],
+            'age'               => $validated['age'],
+            'nationality'       => $validated['nationality'],
+            'age_group'         => $validated['age_group'],
+            'password'          => Hash::make($validated['password']),
+            'role'              => 'player',
+            'status'            => 'pending',
+            'profile_photo'     => $profilePhotoPath,
+            'consent_form_path' => $consentFormPath,
         ]);
 
         Auth::login($user);

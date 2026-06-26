@@ -30,6 +30,7 @@ class User extends Authenticatable
         'age_group',
         'profile_photo',
         'status',
+        'consent_form_path',
     ];
 
     public function isAdmin(): bool

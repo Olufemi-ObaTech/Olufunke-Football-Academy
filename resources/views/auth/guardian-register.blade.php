@@ -117,7 +117,7 @@
                     </div>
                     <div class="mb-4">
                         <label class="form-label fw-semibold">Upload Signed Consent Form (PDF, max 5MB) <span class="text-danger">*</span></label>
-                        <div class="card border-2 rounded-3 @error('consent_form') border-danger @else" style="border-color:#1a5c2a;border-style:dashed;" id="consentZone">
+                        <div class="card border-2 rounded-3 @error('consent_form') border-danger @enderror" style="border-color:#1a5c2a;border-style:dashed;" id="consentZone">
                             <div class="card-body p-4 text-center">
                                 <div id="consentPreview" class="d-none mb-2">
                                     <i class="bi bi-file-earmark-check-fill fs-2 text-success d-block mb-1"></i>

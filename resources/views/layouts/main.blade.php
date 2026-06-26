@@ -67,6 +67,19 @@ use Illuminate\Support\Str;
         img[src=""], img:not([src]) { background: #e9ecef; }
         .card-img-top { width: 100%; object-fit: cover; }
         .news-card .card-img-top { background: #e9ecef; min-height: 200px; }
+        /* ── Global mobile improvements ── */
+        @media (max-width: 575px) {
+            .btn-lg { font-size: 1rem; padding: .6rem 1.1rem; }
+            .display-4 { font-size: 1.7rem; }
+            .fs-5 { font-size: 1rem !important; }
+            .container { padding-left: 14px; padding-right: 14px; }
+            .hero-section { min-height: 320px; }
+        }
+        /* Prevent horizontal scroll from wide elements */
+        body { overflow-x: hidden; }
+        /* Minimum touch target size for buttons and links */
+        .btn, .nav-link, .dropdown-item { min-height: 40px; display: inline-flex; align-items: center; justify-content: center; }
+        .dropdown-item { justify-content: flex-start; }
         /* Lagos time bar */
         #ofa-time-bar {
             background: linear-gradient(90deg,#10316B,#1a4a9e);

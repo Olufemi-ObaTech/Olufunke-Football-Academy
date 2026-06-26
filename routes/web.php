@@ -14,7 +14,7 @@ Route::get('/',          [HomeController::class, 'index'])->name('home');
 Route::get('/about-us',  [PageController::class, 'about'])->name('about');
 Route::get('/our-store', [PageController::class, 'store'])->name('store');
 Route::get('/contact-us', [PageController::class, 'contact'])->name('contact');
-Route::post('/contact-us',[PageController::class, 'contactSubmit'])->name('contact.submit');
+Route::post('/contact-us',[PageController::class, 'contactSubmit'])->name('contact.submit')->middleware('throttle:5,1');
 
 // ── PSA Documentation PDF Report ───────────────────────────────────────────────
 Route::get('/psa-report',    [PageController::class, 'psaReport'])->name('psa-report');
@@ -24,11 +24,11 @@ Route::get('/consent-form',  [PageController::class, 'consentForm'])->name('cons
 
 // ── Guardian Registration (public) ────────────────────────────────────────────
 Route::get('/guardian-register',  [\App\Http\Controllers\Auth\RegisterController::class, 'showGuardianForm'])->name('guardian.register');
-Route::post('/guardian-register', [\App\Http\Controllers\Auth\RegisterController::class, 'registerGuardian'])->name('guardian.register.submit');
+Route::post('/guardian-register', [\App\Http\Controllers\Auth\RegisterController::class, 'registerGuardian'])->name('guardian.register.submit')->middleware('throttle:5,1');
 
 // ── Coach Registration (public) ───────────────────────────────────────────────
 Route::get('/coach-register',  [\App\Http\Controllers\Auth\RegisterController::class, 'showCoachForm'])->name('coach.register');
-Route::post('/coach-register', [\App\Http\Controllers\Auth\RegisterController::class, 'registerCoach'])->name('coach.register.submit');
+Route::post('/coach-register', [\App\Http\Controllers\Auth\RegisterController::class, 'registerCoach'])->name('coach.register.submit')->middleware('throttle:5,1');
 
 // ── Serve uploaded files (without symlink) ──────────────────────────────────────
 Route::get('/storage/{path}', function($path) {
@@ -51,9 +51,9 @@ Route::prefix('quiz')->name('quiz.')->group(function () {
 // ── Auth Routes ────────────────────────────────────────────────────────────────
 Route::middleware('guest')->group(function () {
     Route::get('/register',  [RegisterController::class, 'showForm'])->name('register');
-    Route::post('/register', [RegisterController::class, 'register']);
+    Route::post('/register', [RegisterController::class, 'register'])->middleware('throttle:5,1');
     Route::get('/login',     [LoginController::class, 'showForm'])->name('login');
-    Route::post('/login',    [LoginController::class, 'login']);
+    Route::post('/login',    [LoginController::class, 'login'])->middleware('throttle:10,1');
 });
 
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->middleware('auth');
