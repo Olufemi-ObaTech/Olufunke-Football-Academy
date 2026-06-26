@@ -8,7 +8,7 @@
         <div class="container hero-overlay">
             <div class="row align-items-center">
                 <div class="col-md-8">
-                    <span class="badge bg-warning text-dark fw-bold mb-2 px-3 py-2 fs-6">
+                    <span class="badge bg-warning text-dark fw-bold mb-2 px-3 py-2" style="white-space:normal; font-size:clamp(.78rem,3.5vw,1rem); max-width:100%; display:inline-block;">
                         ⚽ 2026/2027 LSFA State League — Atlantic Conference
                     </span>
                     <h1 class="display-4 fw-bold mb-3">Chasing Excellence, Inspiring Futures</h1>

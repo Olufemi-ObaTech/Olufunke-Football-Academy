@@ -77,6 +77,9 @@ use Illuminate\Support\Str;
         }
         /* Prevent horizontal scroll from wide elements */
         body { overflow-x: hidden; }
+        @media (max-width: 991px) {
+            .navbar-brand { max-width: calc(100vw - 80px); }
+        }
         /* Minimum touch target size for buttons and links */
         .btn, .nav-link, .dropdown-item { min-height: 40px; display: inline-flex; align-items: center; justify-content: center; }
         .dropdown-item { justify-content: flex-start; }
@@ -125,8 +128,10 @@ use Illuminate\Support\Str;
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark py-3 sticky-top shadow">
         <div class="container">
             <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="{{ url('/') }}">
-                <img src="{{ asset('images/OFA New Logo.jpg') }}" alt="OFA Logo" width="48" height="48" class="rounded-circle border border-warning border-2" style="object-fit:cover;">
-                <span class="text-warning">OLUFUNKE FOOTBALL ACADEMY</span>
+                <img src="{{ asset('images/OFA New Logo.jpg') }}" alt="OFA Logo" width="44" height="44" class="rounded-circle border border-warning border-2" style="object-fit:cover; flex-shrink:0;">
+                {{-- Full name on desktop (lg+), short name on mobile --}}
+                <span class="text-warning d-none d-lg-inline">OLUFUNKE FOOTBALL ACADEMY</span>
+                <span class="text-warning d-lg-none" style="font-size:.95rem;">OLUFUNKE FA</span>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain" aria-controls="navbarMain" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
