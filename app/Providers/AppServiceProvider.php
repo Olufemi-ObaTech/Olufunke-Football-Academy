@@ -18,6 +18,7 @@ class AppServiceProvider extends ServiceProvider
             // is plain HTTP. Setting session.secure=false ensures the session cookie
             // is always sent and CSRF tokens never mismatch (419).
             config([
+                'session.driver'    => 'database',
                 'session.secure'    => false,
                 'session.same_site' => 'lax',
             ]);

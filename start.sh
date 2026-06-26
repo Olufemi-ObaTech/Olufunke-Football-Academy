@@ -20,5 +20,11 @@ php artisan db:seed --class=Season2526Seeder --force && echo "Season2526Seeder O
 php artisan db:seed --class=QuizSeeder --force       && echo "QuizSeeder OK"       || echo "QuizSeeder failed"
 php artisan db:seed --class=QuizWeek2Seeder --force  && echo "QuizWeek2Seeder OK"  || echo "QuizWeek2Seeder failed"
 
+# Force database sessions — file sessions are lost on every container restart.
+# Force secure cookie off — Railway terminates SSL at the proxy edge.
+export SESSION_DRIVER=database
+export SESSION_SECURE_COOKIE=false
+export SESSION_DOMAIN=
+
 echo "--- Starting server on port ${PORT:-8080} ---"
 exec php artisan serve --host=0.0.0.0 --port="${PORT:-8080}"
