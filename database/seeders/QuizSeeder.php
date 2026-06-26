@@ -11,6 +11,10 @@ class QuizSeeder extends Seeder
 {
     public function run(): void
     {
+        if (QuizWeek::count() > 0) {
+            return;
+        }
+
         // ── Week 1: General Football Knowledge ────────────────────────────────
         $week1 = QuizWeek::create([
             'title'       => 'Week 1 — General Football Knowledge',

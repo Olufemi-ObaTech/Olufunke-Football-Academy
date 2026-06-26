@@ -8,13 +8,16 @@ echo "DB_DATABASE=${DB_DATABASE}"
 echo "APP_ENV=${APP_ENV}"
 echo "PORT=${PORT:-8080}"
 
-# Storage symlink (non-fatal)
 php artisan storage:link --force 2>/dev/null || true
 
-# Run migrations — if they fail, log the error but still start the server
 echo "--- Running migrations ---"
-php artisan migrate --force && echo "Migrations OK" || echo "WARNING: Migrations failed — check logs"
+php artisan migrate --force && echo "Migrations OK" || echo "WARNING: Migrations failed"
 
-# Start server (exec replaces shell so signals are forwarded cleanly)
+echo "--- Running seeders ---"
+php artisan db:seed --class=AdminSeeder --force      && echo "AdminSeeder OK"      || echo "AdminSeeder failed"
+php artisan db:seed --class=AcademySeeder --force    && echo "AcademySeeder OK"    || echo "AcademySeeder failed"
+php artisan db:seed --class=Season2526Seeder --force && echo "Season2526Seeder OK" || echo "Season2526Seeder failed"
+php artisan db:seed --class=QuizSeeder --force       && echo "QuizSeeder OK"       || echo "QuizSeeder failed"
+
 echo "--- Starting server on port ${PORT:-8080} ---"
 exec php artisan serve --host=0.0.0.0 --port="${PORT:-8080}"

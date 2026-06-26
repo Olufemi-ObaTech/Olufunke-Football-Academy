@@ -11,6 +11,10 @@ class Season2526Seeder extends Seeder
 {
     public function run(): void
     {
+        if (MatchResult::count() > 0 || Standing::count() > 0) {
+            return;
+        }
+
         // ── Clear previous data ────────────────────────────────────────────────
         MatchResult::truncate();
         Standing::truncate();
