@@ -21,25 +21,22 @@ class ApprovedPlayerMiddleware
             return $next($request);
         }
 
-        // Approved players have full access
-        if ($user->role === 'player' && $user->isApproved()) {
+        // Approved players, guardians, and coaches all get access
+        if (in_array($user->role, ['player', 'guardian', 'coach']) && $user->isApproved()) {
             return $next($request);
         }
 
-        // Pending or rejected players — send to dashboard (which is NOT behind this middleware)
-        // Use home route as fallback if dashboard somehow loops
-        $fallback = route('home');
         $dashboardUrl = route('dashboard');
 
-        // Prevent redirect loop: if already heading to dashboard or home, just abort
-        if ($request->url() === $dashboardUrl || $request->url() === $fallback) {
+        // Prevent redirect loop
+        if ($request->url() === $dashboardUrl || $request->url() === route('home')) {
             abort(403, 'Access denied.');
         }
 
-        if ($user->role === 'player' && $user->status === 'pending') {
-            return redirect($dashboardUrl)->with('error', 'Your account is pending approval. You\'ll be notified once approved.');
+        if ($user->status === 'pending') {
+            return redirect($dashboardUrl)->with('error', 'Your account is pending admin approval. You will be notified once approved.');
         }
 
-        return redirect($dashboardUrl)->with('error', 'Access denied. Your account may have been rejected.');
+        return redirect($dashboardUrl)->with('error', 'Access denied. Contact the academy admin for access.');
     }
 }
