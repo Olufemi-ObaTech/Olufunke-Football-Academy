@@ -14,9 +14,6 @@ class AppServiceProvider extends ServiceProvider
         if (config('app.env') === 'production') {
             URL::forceScheme('https');
 
-            // Railway terminates SSL at the proxy edge; the internal PHP connection
-            // is plain HTTP. Setting session.secure=false ensures the session cookie
-            // is always sent and CSRF tokens never mismatch (419).
             config([
                 'session.driver'    => 'database',
                 'session.secure'    => false,

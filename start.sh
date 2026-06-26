@@ -9,6 +9,8 @@ echo "APP_ENV=${APP_ENV}"
 echo "PORT=${PORT:-8080}"
 
 php artisan storage:link --force 2>/dev/null || true
+php artisan config:clear 2>/dev/null || true
+php artisan cache:clear  2>/dev/null || true
 
 echo "--- Running migrations ---"
 php artisan migrate --force && echo "Migrations OK" || echo "WARNING: Migrations failed"
