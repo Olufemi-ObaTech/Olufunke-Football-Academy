@@ -18,6 +18,7 @@ php artisan db:seed --class=AdminSeeder --force      && echo "AdminSeeder OK"   
 php artisan db:seed --class=AcademySeeder --force    && echo "AcademySeeder OK"    || echo "AcademySeeder failed"
 php artisan db:seed --class=Season2526Seeder --force && echo "Season2526Seeder OK" || echo "Season2526Seeder failed"
 php artisan db:seed --class=QuizSeeder --force       && echo "QuizSeeder OK"       || echo "QuizSeeder failed"
+php artisan db:seed --class=QuizWeek2Seeder --force  && echo "QuizWeek2Seeder OK"  || echo "QuizWeek2Seeder failed"
 
 echo "--- Starting server on port ${PORT:-8080} ---"
 exec php artisan serve --host=0.0.0.0 --port="${PORT:-8080}"
