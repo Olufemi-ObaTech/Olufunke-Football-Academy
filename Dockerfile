@@ -35,5 +35,7 @@ RUN mkdir -p storage/framework/sessions \
 
 EXPOSE 8080
 
-# Run migrations first (DB must be ready before serving requests), then start server.
-CMD sh -c "php artisan storage:link --force 2>/dev/null || true && php artisan migrate --force && exec php artisan serve --host=0.0.0.0 --port=${PORT:-8080}"
+COPY start.sh /start.sh
+RUN chmod +x /start.sh
+
+CMD ["/start.sh"]
