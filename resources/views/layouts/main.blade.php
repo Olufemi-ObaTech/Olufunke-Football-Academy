@@ -67,6 +67,13 @@ use Illuminate\Support\Str;
         img[src=""], img:not([src]) { background: #e9ecef; }
         .card-img-top { width: 100%; object-fit: cover; }
         .news-card .card-img-top { background: #e9ecef; min-height: 200px; }
+        /* News card image wrapper */
+        .ofa-img-wrap { height:220px; overflow:hidden; }
+        .ofa-card-img { width:100%; height:100%; object-fit:cover; object-position:center top; display:block; transition:transform .35s ease; }
+        .ofa-img-wrap:hover .ofa-card-img { transform:scale(1.04); }
+        /* 5-column grid for management team on large screens */
+        .col-lg-2dot4 { flex:0 0 auto; width:20%; }
+        @media (max-width:991px) { .col-lg-2dot4 { width:auto; } }
         /* ── Global mobile improvements ── */
         @media (max-width: 575px) {
             .btn-lg { font-size: 1rem; padding: .6rem 1.1rem; }

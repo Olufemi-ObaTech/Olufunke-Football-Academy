@@ -154,8 +154,8 @@
                     $initials = collect(explode(' ', $member->name))->take(2)->map(fn($w)=>strtoupper(substr($w,0,1)))->join('');
                 @endphp
                 <div class="col-6 col-md-4 col-lg-2dot4">
-                    <div class="text-center p-3 bg-white rounded-4 shadow-sm h-100 border-0"
-                         style="border-top:4px solid {{ $colors['bg'] }} !important;border:1px solid #e8edf2;">
+                    <div class="text-center p-3 bg-white rounded-4 shadow-sm h-100"
+                         style="border:1px solid #e8edf2;border-top:4px solid {{ $colors['bg'] }};">
                         {{-- Initials avatar --}}
                         <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3 fw-bold text-white"
                              style="width:68px;height:68px;font-size:1.35rem;background:linear-gradient(135deg,{{ $colors['bg'] }},{{ $colors['bg'] }}cc);
@@ -186,11 +186,6 @@
             </div>
         </div>
     </section>
-
-    <style>
-    .col-lg-2dot4 { width: 20%; }
-    @media (max-width: 991px) { .col-lg-2dot4 { width: auto; } }
-    </style>
 
     {{-- Programs Overview --}}
     <section class="py-5">

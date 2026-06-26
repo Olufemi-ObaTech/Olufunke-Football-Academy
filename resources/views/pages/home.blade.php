@@ -74,6 +74,8 @@
             </li>
         </ul>
  
+        @php $logoFallback = asset('images/OFA New Logo.jpg'); @endphp
+
         <div class="tab-content" id="newsTabContent">
 
             {{-- Latest News Tab --}}
@@ -82,14 +84,12 @@
                     @forelse($latestNews as $news)
                         <div class="col-md-4">
                             <div class="card h-100 border-0 shadow rounded-3 overflow-hidden news-card">
-                                <div style="height:220px;overflow:hidden;background:#10316B;">
+                                <div class="ofa-img-wrap" style="background:#10316B;">
                                     <img src="{{ asset($news->image_path) }}"
                                          alt="{{ $news->title }}"
                                          loading="lazy"
-                                         style="width:100%;height:100%;object-fit:cover;object-position:center top;transition:transform .35s;"
-                                         onmouseover="this.style.transform='scale(1.04)'"
-                                         onmouseout="this.style.transform='scale(1)'"
-                                         onerror="this.parentElement.innerHTML='<div style=\'height:100%;display:flex;align-items:center;justify-content:center;\'><img src=\'{{ asset(\'images/OFA New Logo.jpg\') }}\' style=\'height:90px;opacity:.5;\'></div>'">
+                                         class="ofa-card-img"
+                                         onerror="this.src='{{ $logoFallback }}'">
                                 </div>
                                 <div class="card-body d-flex flex-column">
                                     <span class="badge bg-primary mb-2 align-self-start">
@@ -131,14 +131,12 @@
                     @forelse($matchReports as $report)
                         <div class="col-md-6">
                             <div class="card h-100 border-0 shadow rounded-3 overflow-hidden news-card">
-                                <div style="height:220px;overflow:hidden;background:#1a5c2a;">
+                                <div class="ofa-img-wrap" style="background:#1a5c2a;">
                                     <img src="{{ asset($report->image_path) }}"
                                          alt="{{ $report->title }}"
                                          loading="lazy"
-                                         style="width:100%;height:100%;object-fit:cover;object-position:center center;transition:transform .35s;"
-                                         onmouseover="this.style.transform='scale(1.04)'"
-                                         onmouseout="this.style.transform='scale(1)'"
-                                         onerror="this.parentElement.innerHTML='<div style=\'height:100%;display:flex;align-items:center;justify-content:center;\'><img src=\'{{ asset(\'images/OFA New Logo.jpg\') }}\' style=\'height:90px;opacity:.5;\'></div>'">
+                                         class="ofa-card-img"
+                                         onerror="this.src='{{ $logoFallback }}'">
                                 </div>
                                 <div class="card-body d-flex flex-column">
                                     <span class="badge bg-success mb-2 align-self-start">
@@ -180,33 +178,30 @@
                     @forelse($mediaHighlights as $media)
                         <div class="col-12 col-md-6">
                             <div class="card h-100 border-0 shadow rounded-3 overflow-hidden news-card">
-                                <div class="position-relative" style="height:240px;overflow:hidden;background:#0f1f3d;">
+                                <div class="position-relative ofa-img-wrap" style="height:240px;background:#0f1f3d;">
                                     <img src="{{ asset($media->image_path) }}"
                                          alt="{{ $media->title }}"
                                          loading="lazy"
-                                         style="width:100%;height:100%;object-fit:cover;object-position:center center;transition:transform .35s;"
-                                         onmouseover="this.style.transform='scale(1.04)'"
-                                         onmouseout="this.style.transform='scale(1)'"
-                                         onerror="this.parentElement.querySelector('img').remove()">
-                                    {{-- Dark overlay so play button is always visible --}}
-                                    <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.55) 0%,rgba(0,0,0,.15) 50%,transparent 100%);pointer-events:none;"></div>
+                                         class="ofa-card-img"
+                                         onerror="this.src='{{ $logoFallback }}'">
+                                    {{-- Gradient overlay --}}
+                                    <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.6) 0%,rgba(0,0,0,.1) 60%,transparent 100%);pointer-events:none;"></div>
                                     {{-- Play button --}}
                                     <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:2;">
                                         @if($media->meta_link)
-                                        <a href="{{ $media->meta_link }}" target="_blank" rel="noopener"
-                                           style="display:flex;align-items:center;justify-content:center;width:64px;height:64px;border-radius:50%;background:rgba(255,0,0,.85);border:3px solid #fff;text-decoration:none;box-shadow:0 4px 20px rgba(0,0,0,.4);transition:transform .2s;"
-                                           onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
-                                            <i class="bi bi-play-fill text-white" style="font-size:1.8rem;margin-left:4px;"></i>
-                                        </a>
+                                            <a href="{{ $media->meta_link }}" target="_blank" rel="noopener noreferrer"
+                                               style="display:flex;align-items:center;justify-content:center;width:64px;height:64px;border-radius:50%;background:rgba(220,20,20,.9);border:3px solid #fff;text-decoration:none;box-shadow:0 4px 20px rgba(0,0,0,.5);">
+                                                <i class="bi bi-play-fill text-white" style="font-size:1.8rem;margin-left:4px;"></i>
+                                            </a>
                                         @else
-                                        <div style="display:flex;align-items:center;justify-content:center;width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,.2);border:3px solid #fff;">
-                                            <i class="bi bi-play-fill text-white" style="font-size:1.8rem;margin-left:4px;"></i>
-                                        </div>
+                                            <div style="display:flex;align-items:center;justify-content:center;width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,.2);border:3px solid rgba(255,255,255,.6);">
+                                                <i class="bi bi-play-fill text-white" style="font-size:1.8rem;margin-left:4px;"></i>
+                                            </div>
                                         @endif
                                     </div>
-                                    {{-- Video badge bottom-left --}}
-                                    <span style="position:absolute;bottom:10px;left:12px;z-index:2;"
-                                          class="badge bg-danger"><i class="bi bi-youtube me-1"></i>Video</span>
+                                    <span class="badge bg-danger" style="position:absolute;bottom:10px;left:12px;z-index:2;">
+                                        <i class="bi bi-youtube me-1"></i>Video
+                                    </span>
                                 </div>
                                 <div class="card-body d-flex flex-column">
                                     <h5 class="card-title fw-bold" style="font-size:1rem;">{{ $media->title }}</h5>
@@ -219,10 +214,10 @@
                                                 data-bs-toggle="collapse"
                                                 data-bs-target="#news-media-{{ $media->id }}"
                                                 aria-expanded="false">
-                                            <i class="bi bi-chevron-down me-1"></i>Read More
+                                            <i class="bi bi-chevron-down me-1"></i>Details
                                         </button>
                                         @if($media->meta_link)
-                                            <a href="{{ $media->meta_link }}" target="_blank" rel="noopener"
+                                            <a href="{{ $media->meta_link }}" target="_blank" rel="noopener noreferrer"
                                                class="btn btn-sm btn-danger flex-fill">
                                                 <i class="bi bi-youtube me-1"></i>Watch
                                             </a>
