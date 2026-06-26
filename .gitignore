@@ -5,6 +5,7 @@
 .env.*.local
 .env.backup
 .env.production
+.ftp-deploy-sync-state-*.json
 
 # Next.js build output & deps
 netlify-supabase/.next/
@@ -47,3 +48,6 @@ fix_all.php
 seed_lessons.php
 setup_storage.php
 update_2627.php
+
+# Local Netlify folder
+.netlify
