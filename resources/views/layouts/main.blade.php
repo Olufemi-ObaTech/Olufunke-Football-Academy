@@ -129,9 +129,9 @@ use Illuminate\Support\Str;
         <div class="container">
             <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="{{ url('/') }}">
                 <img src="{{ asset('images/OFA New Logo.jpg') }}" alt="OFA Logo" width="44" height="44" class="rounded-circle border border-warning border-2" style="object-fit:cover; flex-shrink:0;">
-                {{-- Full name on desktop (lg+), short name on mobile --}}
+                {{-- Desktop: full uppercase. Mobile: mixed-case scaled to fit --}}
                 <span class="text-warning d-none d-lg-inline">OLUFUNKE FOOTBALL ACADEMY</span>
-                <span class="text-warning d-lg-none" style="font-size:.95rem;">OLUFUNKE FA</span>
+                <span class="text-warning d-lg-none" style="font-size:clamp(.72rem,3.8vw,.97rem); line-height:1.2; white-space:nowrap;">Olufunke Football Academy</span>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain" aria-controls="navbarMain" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
