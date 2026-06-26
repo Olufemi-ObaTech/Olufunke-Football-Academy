@@ -20,7 +20,8 @@ php artisan db:seed --class=AdminSeeder --force      && echo "AdminSeeder OK"   
 php artisan db:seed --class=AcademySeeder --force    && echo "AcademySeeder OK"    || echo "AcademySeeder failed"
 php artisan db:seed --class=Season2526Seeder --force && echo "Season2526Seeder OK" || echo "Season2526Seeder failed"
 php artisan db:seed --class=QuizSeeder --force       && echo "QuizSeeder OK"       || echo "QuizSeeder failed"
-php artisan db:seed --class=QuizWeek2Seeder --force  && echo "QuizWeek2Seeder OK"  || echo "QuizWeek2Seeder failed"
+php artisan db:seed --class=QuizWeek2Seeder --force       && echo "QuizWeek2Seeder OK"       || echo "QuizWeek2Seeder failed"
+php artisan db:seed --class=PostImageUpdateSeeder --force && echo "PostImageUpdateSeeder OK" || echo "PostImageUpdateSeeder failed"
 
 # Force database sessions — file sessions are lost on every container restart.
 # Force secure cookie off — Railway terminates SSL at the proxy edge.

@@ -103,46 +103,94 @@
     <section class="py-5" style="background:#f0f4ff;">
         <div class="container">
             <h2 class="fw-bold text-center mb-5" style="color:#10316B;">Leadership &amp; Commitment</h2>
-            <div class="row align-items-center g-5 mb-5">
-                <div class="col-md-5 text-center">
-                    <img src="{{ asset('images/Olufunke Football Academy president.jpg') }}" alt="OFA President"
-                         class="img-fluid rounded-3 shadow" style="max-height:360px;object-fit:cover;width:100%;">
-                </div>
-                <div class="col-md-7">
-                    <h4 class="fw-bold" style="color:#10316B;">Adeshina Akintayo Peter</h4>
-                    <p class="text-success fw-semibold mb-3">Founder &amp; President</p>
-                    <p>Under the stewardship of <strong>Adeshina Akintayo Peter</strong>, OFA cultivates the next generation of leaders — not just athletes. Every program is guided by a dedicated team of licensed coaches, health educators, and community mentors, delivering world-class football development and life skills.</p>
+
+            {{-- President Feature Card --}}
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden mb-5">
+                <div class="row g-0">
+                    <div class="col-md-5" style="min-height:340px;overflow:hidden;background:#10316B;">
+                        <img src="{{ asset('images/Olufunke Football Academy president.jpg') }}"
+                             alt="Adeshina Akintayo Peter — Founder & President"
+                             style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block;">
+                    </div>
+                    <div class="col-md-7 d-flex align-items-center">
+                        <div class="p-4 p-md-5">
+                            <span class="badge mb-3 px-3 py-2" style="background:#ffc107;color:#0d1117;font-size:.78rem;">
+                                <i class="bi bi-star-fill me-1"></i>Founder &amp; President
+                            </span>
+                            <h3 class="fw-bold mb-2" style="color:#10316B;">Adeshina Akintayo Peter</h3>
+                            <div class="mb-3" style="width:48px;height:4px;background:linear-gradient(90deg,#10316B,#4CAF50);border-radius:2px;"></div>
+                            <p class="text-muted mb-3" style="line-height:1.8;">
+                                Under the stewardship of <strong>Adeshina Akintayo Peter</strong>, OFA cultivates
+                                the next generation of leaders — not just athletes. Every program is guided by a
+                                dedicated team of licensed coaches, health educators, and community mentors,
+                                delivering world-class football development and life skills.
+                            </p>
+                            <p class="text-muted mb-0" style="line-height:1.8;">
+                                Incorporated in <strong>September 2023</strong>, OFA is registered under
+                                <strong>RC-7147523</strong> and affiliated with FIFA TMS, the Lagos State
+                                Football Association, and the Nigeria Football Federation.
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             {{-- Management Team --}}
-            <h3 class="fw-bold text-center mb-4" style="color:#10316B;">Our Management Team</h3>
+            <h3 class="fw-bold text-center mb-2" style="color:#10316B;">Our Management Team</h3>
+            <p class="text-center text-muted mb-4">The dedicated people who run Olufunke Football Academy</p>
             <div class="row g-4 justify-content-center">
+                @php
+                    $roleColors = [
+                        'Founder & President'        => ['bg'=>'#10316B','light'=>'#dbeafe'],
+                        'Vice Chairman'              => ['bg'=>'#1a5c2a','light'=>'#dcfce7'],
+                        'Sporting Director'          => ['bg'=>'#7c3aed','light'=>'#ede9fe'],
+                        'Technical Adviser'          => ['bg'=>'#b45309','light'=>'#fef3c7'],
+                        'Team and Marketing Manager' => ['bg'=>'#be185d','light'=>'#fce7f3'],
+                    ];
+                @endphp
                 @foreach($team as $member)
-                <div class="col-6 col-md-3">
-                    <div class="text-center p-3 bg-white rounded-3 shadow-sm h-100">
-                        <div class="rounded-circle bg-primary d-inline-flex align-items-center justify-content-center mb-3"
-                             style="width:64px;height:64px;">
-                            <i class="bi bi-person-fill text-white fs-3"></i>
+                @php
+                    $colors = $roleColors[$member->role] ?? ['bg'=>'#64748b','light'=>'#f1f5f9'];
+                    $initials = collect(explode(' ', $member->name))->take(2)->map(fn($w)=>strtoupper(substr($w,0,1)))->join('');
+                @endphp
+                <div class="col-6 col-md-4 col-lg-2dot4">
+                    <div class="text-center p-3 bg-white rounded-4 shadow-sm h-100 border-0"
+                         style="border-top:4px solid {{ $colors['bg'] }} !important;border:1px solid #e8edf2;">
+                        {{-- Initials avatar --}}
+                        <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3 fw-bold text-white"
+                             style="width:68px;height:68px;font-size:1.35rem;background:linear-gradient(135deg,{{ $colors['bg'] }},{{ $colors['bg'] }}cc);
+                                    box-shadow:0 4px 14px {{ $colors['bg'] }}40;">
+                            {{ $initials }}
                         </div>
-                        <h6 class="fw-bold mb-1" style="color:#10316B;">{{ $member->name }}</h6>
-                        <p class="text-success small mb-2">{{ $member->role }}</p>
+                        <h6 class="fw-bold mb-1" style="color:#0d1117;font-size:.88rem;">{{ $member->name }}</h6>
+                        <span class="badge rounded-pill mb-3 px-3" style="background:{{ $colors['light'] }};color:{{ $colors['bg'] }};font-size:.72rem;font-weight:700;">
+                            {{ $member->role }}
+                        </span>
                         @if($member->email)
-                            <a href="mailto:{{ $member->email }}" class="btn btn-sm btn-outline-primary">
-                                <i class="bi bi-envelope"></i> Email
-                            </a>
+                            <div>
+                                <a href="mailto:{{ $member->email }}"
+                                   class="btn btn-sm fw-semibold px-3"
+                                   style="background:{{ $colors['light'] }};color:{{ $colors['bg'] }};border:none;font-size:.75rem;">
+                                    <i class="bi bi-envelope-fill me-1"></i>Email
+                                </a>
+                            </div>
                         @endif
                     </div>
                 </div>
                 @endforeach
             </div>
             <div class="text-center mt-4">
-                <a href="mailto:Olufunkefootballacademy@gmail.com" class="btn btn-outline-dark">
-                    <i class="bi bi-envelope-fill"></i> Contact Full Management Team
+                <a href="mailto:Olufunkefootballacademy@gmail.com" class="btn btn-outline-dark px-4">
+                    <i class="bi bi-envelope-fill me-2"></i>Contact Full Management Team
                 </a>
             </div>
         </div>
     </section>
+
+    <style>
+    .col-lg-2dot4 { width: 20%; }
+    @media (max-width: 991px) { .col-lg-2dot4 { width: auto; } }
+    </style>
 
     {{-- Programs Overview --}}
     <section class="py-5">
