@@ -31,6 +31,8 @@ class User extends Authenticatable
         'profile_photo',
         'status',
         'consent_form_path',
+        'child_name',
+        'relationship_to_player',
     ];
 
     public function isAdmin(): bool

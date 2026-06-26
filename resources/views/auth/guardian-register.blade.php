@@ -65,13 +65,21 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Relationship to Player <span class="text-danger">*</span></label>
-                            <select name="relationship" class="form-select form-select-lg @error('relationship') is-invalid @enderror" required>
+                            <select name="relationship" id="relationshipSelect" class="form-select form-select-lg @error('relationship') is-invalid @enderror" required>
                                 <option value="" disabled {{ old('relationship') ? '' : 'selected' }}>Select relationship</option>
                                 @foreach(['Father','Mother','Guardian','Uncle','Aunt','Other'] as $r)
                                     <option value="{{ $r }}" {{ old('relationship') === $r ? 'selected' : '' }}>{{ $r }}</option>
                                 @endforeach
                             </select>
                             @error('relationship')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            <div id="relationshipOtherWrap" class="mt-2" style="display:{{ old('relationship')==='Other' ? 'block' : 'none' }};">
+                                <input type="text" name="relationship_other" id="relationshipOther"
+                                    class="form-control form-control-lg @error('relationship_other') is-invalid @enderror"
+                                    placeholder="Please specify your relationship"
+                                    value="{{ old('relationship_other') }}"
+                                    maxlength="50">
+                                @error('relationship_other')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            </div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Child's Full Name <span class="text-danger">*</span></label>
@@ -182,6 +190,23 @@
 @endsection
 @push('scripts')
 <script>
+// Show/hide "Other" relationship text field
+var relSelect = document.getElementById('relationshipSelect');
+var relOtherWrap = document.getElementById('relationshipOtherWrap');
+var relOtherInput = document.getElementById('relationshipOther');
+if (relSelect) {
+    relSelect.addEventListener('change', function() {
+        if (this.value === 'Other') {
+            relOtherWrap.style.display = 'block';
+            relOtherInput.setAttribute('required', 'required');
+        } else {
+            relOtherWrap.style.display = 'none';
+            relOtherInput.removeAttribute('required');
+            relOtherInput.value = '';
+        }
+    });
+}
+
 // Consent form upload preview
 var consentInput = document.getElementById('consentInput');
 var consentPreview = document.getElementById('consentPreview');

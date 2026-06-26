@@ -194,14 +194,34 @@
             <div class="text-muted" style="font-size:.75rem;">{{ $user->email }}</div>
           </div>
           <div class="row g-2">
-            @foreach([['Phone',$user->phone??'—'],['Position',$user->position??'—'],['Age',$user->age??'—'],['Nationality',$user->nationality??'—'],['Member Since',$user->created_at->format('d M Y')]] as [$lbl,$val])
-            <div class="col-6">
-              <div style="background:#f8fafc;border-radius:10px;padding:10px 12px;">
-                <div style="font-size:.65rem;font-weight:800;letter-spacing:.06em;color:#94a3b8;text-transform:uppercase;">{{ $lbl }}</div>
-                <div style="font-size:.82rem;font-weight:600;color:#0d1117;margin-top:2px;">{{ $val }}</div>
+            @if($user->role === 'guardian')
+              @php
+                $guardianFields = [
+                    ['Phone',        $user->phone ?? '—'],
+                    ["Child's Name", $user->child_name ?? (str_replace('Guardian of: ', '', $user->position ?? '') ?: '—')],
+                    ['Relationship', $user->relationship_to_player ?? '—'],
+                    ['Nationality',  $user->nationality ?? '—'],
+                    ['Member Since', $user->created_at->format('d M Y')],
+                ];
+              @endphp
+              @foreach($guardianFields as [$lbl,$val])
+              <div class="col-6">
+                <div style="background:#f8fafc;border-radius:10px;padding:10px 12px;">
+                  <div style="font-size:.65rem;font-weight:800;letter-spacing:.06em;color:#94a3b8;text-transform:uppercase;">{{ $lbl }}</div>
+                  <div style="font-size:.82rem;font-weight:600;color:#0d1117;margin-top:2px;">{{ $val }}</div>
+                </div>
               </div>
-            </div>
-            @endforeach
+              @endforeach
+            @else
+              @foreach([['Phone',$user->phone??'—'],['Position',$user->position??'—'],['Age',$user->age??'—'],['Nationality',$user->nationality??'—'],['Member Since',$user->created_at->format('d M Y')]] as [$lbl,$val])
+              <div class="col-6">
+                <div style="background:#f8fafc;border-radius:10px;padding:10px 12px;">
+                  <div style="font-size:.65rem;font-weight:800;letter-spacing:.06em;color:#94a3b8;text-transform:uppercase;">{{ $lbl }}</div>
+                  <div style="font-size:.82rem;font-weight:600;color:#0d1117;margin-top:2px;">{{ $val }}</div>
+                </div>
+              </div>
+              @endforeach
+            @endif
           </div>
         </div>
       </div>

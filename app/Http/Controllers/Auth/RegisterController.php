@@ -24,16 +24,26 @@ class RegisterController extends Controller
     public function registerGuardian(Request $request)
     {
         $validated = $request->validate([
-            'name'          => 'required|string|max:100',
-            'email'         => 'required|email|unique:users,email|max:150',
-            'phone'         => 'required|string|max:20',
-            'nationality'   => 'required|string|max:60',
-            'relationship'  => 'required|string|max:50',
-            'child_name'    => 'required|string|max:100',
-            'password'      => 'required|string|min:8|confirmed',
-            'profile_photo' => 'nullable|image|mimes:jpg,jpeg,png,gif,webp|max:2048',
-            'consent_form'  => 'required|file|mimes:pdf|max:5120',
+            'name'               => 'required|string|max:100',
+            'email'              => 'required|email|unique:users,email|max:150',
+            'phone'              => 'required|string|max:20',
+            'nationality'        => 'required|string|max:60',
+            'relationship'       => 'required|string|max:50',
+            'relationship_other' => 'nullable|string|max:50',
+            'child_name'         => 'required|string|max:100',
+            'password'           => 'required|string|min:8|confirmed',
+            'profile_photo'      => 'nullable|image|mimes:jpg,jpeg,png,gif,webp|max:2048',
+            'consent_form'       => 'required|file|mimes:pdf|max:5120',
         ]);
+
+        // If "Other" chosen, use the custom text they typed
+        $relationship = $validated['relationship'] === 'Other'
+            ? trim($validated['relationship_other'] ?? 'Other')
+            : $validated['relationship'];
+
+        if ($validated['relationship'] === 'Other' && empty(trim($validated['relationship_other'] ?? ''))) {
+            return back()->withErrors(['relationship_other' => 'Please specify your relationship to the player.'])->withInput();
+        }
 
         $profilePhotoPath = null;
         if ($request->hasFile('profile_photo')) {
@@ -52,18 +62,20 @@ class RegisterController extends Controller
         }
 
         $user = User::create([
-            'name'              => $validated['name'],
-            'email'             => $validated['email'],
-            'phone'             => $validated['phone'],
-            'nationality'       => $validated['nationality'],
-            'position'          => 'Guardian of: ' . $validated['child_name'],
-            'age'               => 0,
-            'age_group'         => 'N/A',
-            'password'          => Hash::make($validated['password']),
-            'role'              => 'guardian',
-            'status'            => 'pending',
-            'profile_photo'     => $profilePhotoPath,
-            'consent_form_path' => $consentFormPath,
+            'name'                   => $validated['name'],
+            'email'                  => $validated['email'],
+            'phone'                  => $validated['phone'],
+            'nationality'            => $validated['nationality'],
+            'child_name'             => $validated['child_name'],
+            'relationship_to_player' => $relationship,
+            'position'               => 'Guardian of: ' . $validated['child_name'],
+            'age'                    => 0,
+            'age_group'              => 'N/A',
+            'password'               => Hash::make($validated['password']),
+            'role'                   => 'guardian',
+            'status'                 => 'pending',
+            'profile_photo'          => $profilePhotoPath,
+            'consent_form_path'      => $consentFormPath,
         ]);
 
         Auth::login($user);
