@@ -12,12 +12,8 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
 
-        // Trust Railway's reverse proxy so HTTPS is detected correctly
-        // (Railway terminates TLS at the proxy; the internal connection is HTTP)
-        $middleware->trustProxies(at: '*', headers: \Illuminate\Http\Request::HEADER_X_FORWARDED_FOR |
-            \Illuminate\Http\Request::HEADER_X_FORWARDED_HOST |
-            \Illuminate\Http\Request::HEADER_X_FORWARDED_PORT |
-            \Illuminate\Http\Request::HEADER_X_FORWARDED_PROTO);
+        // Trust Railway's reverse proxy so HTTPS/CSRF is detected correctly
+        $middleware->trustProxies(at: '*');
 
         // Apply security headers and input sanitisation to every web request
         $middleware->web(append: [
