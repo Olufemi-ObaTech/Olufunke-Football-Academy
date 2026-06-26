@@ -35,6 +35,5 @@ RUN mkdir -p storage/framework/sessions \
 
 EXPOSE 8080
 
-# Start server immediately (so Railway health check passes),
-# then run migrations in the background after 5 seconds.
-CMD sh -c "php artisan storage:link --force 2>/dev/null; php artisan serve --host=0.0.0.0 --port=${PORT:-8080} & sleep 5 && php artisan migrate --force; wait"
+# Run migrations first (DB must be ready before serving requests), then start server.
+CMD sh -c "php artisan storage:link --force 2>/dev/null || true && php artisan migrate --force && exec php artisan serve --host=0.0.0.0 --port=${PORT:-8080}"
